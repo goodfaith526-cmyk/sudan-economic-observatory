@@ -18,7 +18,8 @@ const CLRS=['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490
 const RBDG={'عربي':'r-arab','إفريقيا':'r-afr','آسيا':'r-asia','أوروبا':'r-eur','صناعي':'r-ind'};
 
 const SEED = window.SEO_DATA.SEED;
-window.SEO_PDF_PAGE_CACHE = window.SEO_PDF_PAGE_CACHE || {};
+// pending xlsx import result (set by teXlsxFileSelected, consumed by teApproveXlsxBatch)
+window._pendingXlsxImport = null;
 
 function loadDB(){
   return window.SEO_SERVICES.trade.loadDatabase(SEED);
@@ -495,72 +496,164 @@ function teQuick(v){
   teRun();
 }
 
-// PDF/CSV loading
-let extRawText='';
-function teLoadFile(e){const f=e.target.files[0];if(!f)return;if(f.name.endsWith('.pdf'))parsePDF(f);else parseCSV(f);}
-function teDzDrop(e){e.preventDefault();document.getElementById('te-dz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f) teLoadFile({target:{files:[f]}});}
+// ── Excel (xlsx) import ──────────────────────────────────────────────────────
+
 function dzOver(e,id){e.preventDefault();document.getElementById(id)?.classList.add('drag');}
 function dzLeave(id){document.getElementById(id)?.classList.remove('drag');}
 
-function parsePDF(file){
-  const reader=new FileReader();
-  reader.onload=async function(e){
-    try{
-      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      const pdf=await pdfjsLib.getDocument({data:e.target.result}).promise;
-      let text='';
-      for(let i=1;i<=Math.min(pdf.numPages,10);i++){const page=await pdf.getPage(i);const tc=await page.getTextContent();text+=tc.items.map(s=>s.str).join(' ')+'\n';}
-      extRawText=text;
-      const yr=text.match(/20(1[5-9]|2[0-9])/)?.[0]||new Date().getFullYear().toString();
-      document.getElementById('ex-year').value=yr;
-      document.getElementById('ext-raw-preview').textContent=text.slice(0,600)+'...';
-      const nums=(text.match(/(\d{1,3},?\d{3},?\d{3})/g)||[]).map(n=>parseInt(n.replace(/,/g,''))).filter(n=>n>100000&&n<20000000).sort((a,b)=>b-a);
-      if(nums[0]) document.getElementById('ex-imp').value=nums[0];
-      if(nums[1]) document.getElementById('ex-exp').value=nums[1];
-      if(text.includes('ذهب')||text.includes('Gold')){document.getElementById('ex-c1').value='الذهب';const gn=nums.filter(n=>n>500000&&n<2000000);if(gn[0]) document.getElementById('ex-v1').value=gn[0];}
-      openModal('ext-modal');
-    }catch(err){alert('خطأ في قراءة PDF: '+err.message);}
-  };
-  reader.readAsArrayBuffer(file);
+function teXlsxDzDrop(e){
+  e.preventDefault();
+  document.getElementById('te-dz').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f) _teReadXlsxFile(f);
 }
-function parseCSV(file){
+
+function teXlsxFileSelected(e){
+  const f=e.target.files[0];
+  if(f) _teReadXlsxFile(f);
+  e.target.value='';
+}
+
+function _teXlsxSetStatus(msg,color='var(--amber)'){
+  const el=document.getElementById('te-xlsx-status');
+  if(!el) return;
+  el.style.display='flex';
+  el.style.color=color;
+  el.textContent=msg;
+}
+
+function _teReadXlsxFile(file){
+  _teXlsxSetStatus('جاري قراءة الملف: '+file.name);
+  document.getElementById('te-xlsx-summary').style.display='none';
+  document.getElementById('te-xlsx-review-panel').style.display='none';
+  window._pendingXlsxImport=null;
+
   const reader=new FileReader();
   reader.onload=function(e){
-    const lines=e.target.result.split('\n').filter(l=>l.trim());
-    const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
-    const rows=lines.slice(1).map(l=>l.split(',').map(v=>v.replace(/"/g,'').trim()));
-    let changed=false;
-    rows.forEach(r=>{
-      const yr=r[headers.indexOf('year')]||'';
-      if(!yr) return;
-      if(!DB.years[yr]) DB.years[yr]={monthly_e:[],monthly_i:[],quarterly_e:[],quarterly_i:[],exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[]};
-      const type=r[headers.indexOf('type')]||'exp';
-      const cn=r[headers.indexOf('commodity_name')];const cv=parseInt(r[headers.indexOf('commodity_value_kusd')])||0;
-      if(cn&&cv){const arr=type==='exp'?DB.years[yr].exp_com:DB.years[yr].imp_com;const ex=arr.find(c=>c.n===cn);if(ex)ex.v=cv;else arr.push({n:cn,v:cv,p:0});changed=true;}
-    });
-    if(changed){DB.sources.push({year:'CSV',file:file.name,added:new Date().toISOString().slice(0,10)});saveDB();teInit();teRun();addFileTag('te-loaded-files',file.name,'✅ '+rows.length+' سجل');}
-    alert('✅ تم تحميل '+rows.length+' سجل من '+file.name);
+    try{
+      const result=window.SEO_SERVICES.xlsxImport.importWorkbook(e.target.result,file.name);
+      if(!result.ok){
+        _teXlsxSetStatus('❌ '+result.errors.join(' | '),'var(--imp)');
+        return;
+      }
+      window._pendingXlsxImport=result;
+      _teXlsxSetStatus('✅ تم قراءة الملف — راجع الملخص أدناه','var(--exp)');
+      _teRenderXlsxSummary(result);
+    }catch(err){
+      _teXlsxSetStatus('❌ خطأ غير متوقع: '+err.message,'var(--imp)');
+    }
   };
-  reader.readAsText(file,'UTF-8');
+  reader.onerror=function(){_teXlsxSetStatus('❌ تعذرت قراءة الملف','var(--imp)');};
+  reader.readAsArrayBuffer(file);
 }
-function extConfirm(){
-  const yr=document.getElementById('ex-year').value;
-  const expV=parseInt(document.getElementById('ex-exp').value)||0;
-  const impV=parseInt(document.getElementById('ex-imp').value)||0;
-  if(!yr||!expV||!impV){alert('يرجى ملء السنة والإجماليات');return;}
-  if(!DB.years[yr]) DB.years[yr]={monthly_e:[],monthly_i:[],quarterly_e:[],quarterly_i:[],exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[]};
-  const c1=document.getElementById('ex-c1').value,v1=parseInt(document.getElementById('ex-v1').value)||0;
-  const c2=document.getElementById('ex-c2').value,v2=parseInt(document.getElementById('ex-v2').value)||0;
-  if(c1&&v1) teUpsert(yr,'exp',c1,v1,expV);
-  if(c2&&v2) teUpsert(yr,'exp',c2,v2,expV);
-  const ex=DB.annual.find(r=>r.y===yr);if(ex){ex.e=expV;ex.i=impV;}else DB.annual.push({y:yr,e:expV,i:impV});
-  DB.annual.sort((a,b)=>a.y.localeCompare(b.y));
-  DB.sources.push({year:yr,file:'PDF import',added:new Date().toISOString().slice(0,10)});
-  saveDB();teInit();teUpdateDB();teRun();
-  addFileTag('te-loaded-files',`بيانات ${yr}`,`✅ ${fmt(expV)}`);
-  closeModal('ext-modal');alert(`✅ تمت إضافة بيانات ${yr} للقاعدة التراكمية`);
+
+function _teRenderXlsxSummary(result){
+  const s=result.importSummary;
+  const meta=result.metadata||{};
+  const lines=[
+    `<strong>الملف:</strong> ${s.fileName}`,
+    `<strong>السنة:</strong> ${s.coveredYear} · الجهة: ${s.sourceOrg}`,
+    `<strong>الإصدار:</strong> العدد ${meta.issue||'—'} · المجلد ${meta.volume||'—'}`,
+    `<strong>طريقة الاستخلاص:</strong> ${(meta.extraction_method||'').slice(0,80)}`,
+    `<strong>إجمالي المشاهدات:</strong> ${s.totalObservations.toLocaleString()} سجل`,
+    `<strong>إجماليات الميزان التجاري:</strong> ${s.publishedTotalsCount} سجل`,
+    `<strong>صفوف تحتاج مراجعة (مستبعدة):</strong> ${s.reviewRequiredCount}`,
+    `<hr style="border:none;border-top:1px solid var(--border);margin:6px 0">`,
+  ];
+  Object.entries(s.bySheet).forEach(([sheet,count])=>{
+    lines.push(`<span style="color:var(--t3)">${sheet}:</span> ${count.toLocaleString()} سجل`);
+  });
+  document.getElementById('te-xlsx-summary-body').innerHTML=lines.join('<br>');
+
+  const warn=document.getElementById('te-xlsx-review-warning');
+  if(s.reviewRequiredCount>0){
+    warn.style.display='block';
+    warn.textContent=`⚠ ${s.reviewRequiredCount} صف مستبعد من الاستيراد (صفوف غامضة أو مكررة) — يمكن عرضها أدناه.`;
+    _teRenderXlsxReviewRows(result.reviewRequired);
+  } else {
+    warn.style.display='none';
+  }
+
+  document.getElementById('te-xlsx-approve-confirm').value='';
+  document.getElementById('te-xlsx-approve-status').textContent='';
+  document.getElementById('te-xlsx-summary').style.display='block';
 }
-function teUpsert(yr,t,n,v,tot){const arr=t==='exp'?DB.years[yr].exp_com:DB.years[yr].imp_com;const ex=arr.find(c=>c.n===n);if(ex){ex.v=v;ex.p=tot?+(v/tot*100).toFixed(1):ex.p;}else arr.push({n,v,p:tot?+(v/tot*100).toFixed(1):0});}
+
+function _teRenderXlsxReviewRows(rows){
+  const tbody=document.getElementById('te-xlsx-review-body');
+  if(!tbody) return;
+  tbody.innerHTML=rows.slice(0,200).map(r=>
+    `<tr><td>${r.year||''}</td><td>${r.flow||''}</td><td>${r.period_type||''}</td><td>${r.source_page||''}</td><td style="color:var(--amber)">${r.issue_type||''}</td><td style="font-size:10px">${r.suggested_action||''}</td></tr>`
+  ).join('');
+  document.getElementById('te-xlsx-review-panel').style.display='block';
+}
+
+function teCancelXlsxImport(){
+  window._pendingXlsxImport=null;
+  document.getElementById('te-xlsx-summary').style.display='none';
+  document.getElementById('te-xlsx-review-panel').style.display='none';
+  _teXlsxSetStatus('تم إلغاء الاستيراد','var(--t3)');
+}
+
+function teApproveXlsxBatch(){
+  const confirmVal=(document.getElementById('te-xlsx-approve-confirm')?.value||'').trim();
+  const statusEl=document.getElementById('te-xlsx-approve-status');
+  const result=window._pendingXlsxImport;
+
+  if(!result){
+    if(statusEl) statusEl.textContent='لا يوجد ملف محمّل.';
+    return;
+  }
+  if(confirmVal!=='APPROVE XLSX BATCH'){
+    if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='اكتب APPROVE XLSX BATCH للتأكيد.';}
+    return;
+  }
+
+  try{
+    let normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized||{});
+
+    // Add source file
+    const existingSource=normalized.sourceFiles.find(s=>s.id===result.sourceFile.id);
+    if(!existingSource) normalized.sourceFiles.push(result.sourceFile);
+
+    // Add import batch (mark approved immediately — validation already done externally)
+    result.importBatch.status='approved';
+    result.importBatch.approvedAt=new Date().toISOString();
+    result.importBatch.approvedYear=result.importSummary.coveredYear;
+    const existingBatch=normalized.importBatches.find(b=>b.id===result.importBatch.id);
+    if(!existingBatch) normalized.importBatches.push(result.importBatch);
+
+    // Add published totals
+    const existingTotalIds=new Set(normalized.publishedTotals.map(t=>t.id));
+    result.publishedTotals.forEach(t=>{ if(!existingTotalIds.has(t.id)) normalized.publishedTotals.push(t); });
+
+    // Mark active year batch
+    const year=String(result.importSummary.coveredYear);
+    normalized.activeYearBatches=normalized.activeYearBatches||{};
+    normalized.activeYearBatches[year]=result.importBatch.id;
+
+    // Publish observations directly (validation already passed in Excel file)
+    const publishedObs=result.draftObservations.map(obs=>({...obs,reviewStatus:'approved',isPublished:true}));
+    const existingObsIds=new Set(normalized.observations.map(o=>o.id));
+    publishedObs.forEach(o=>{ if(!existingObsIds.has(o.id)) normalized.observations.push(o); });
+
+    DB.normalized=normalized;
+    saveDB();
+    DB=loadDB();
+    teInit();
+    teRun();
+
+    window._pendingXlsxImport=null;
+    document.getElementById('te-xlsx-summary').style.display='none';
+    document.getElementById('te-xlsx-review-panel').style.display='none';
+    _teXlsxSetStatus(`✅ تمت إضافة بيانات ${year} — ${result.importSummary.totalObservations.toLocaleString()} مشاهدة — ${result.importSummary.publishedTotalsCount} إجمالي ميزان`,'var(--exp)');
+    addFileTag('te-loaded-files',result.sourceFile.originalFilename,`✅ ${year} · ${result.importSummary.totalObservations.toLocaleString()} سجل`);
+    if(statusEl){statusEl.style.color='var(--exp)';statusEl.textContent='✅ تم الاعتماد بنجاح';}
+
+  }catch(err){
+    if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='❌ خطأ: '+err.message;}
+  }
+}
 function teDL(){if(TE_LAST_EXPORT){dlCSV(TE_LAST_EXPORT.rows,TE_LAST_EXPORT.fn);return;}const isExp=TS.type==='exp';let rows=[],fn='trade';
   if(TS.type==='bal'){rows=[['الفترة','الصادرات (ألف $)','الواردات (ألف $)','الميزان (ألف $)']];DB.annual.forEach(r=>rows.push([r.y,r.e,r.i,r.e-r.i]));fn='balance';}
   else if(TS.view==='commodity'){rows=[['السلعة','القيمة (ألف $)','النسبة %']];(isExp?DB.years[TS.yr]?.exp_com||[]:DB.years[TS.yr]?.imp_com||[]).forEach(r=>rows.push([r.n,r.v,r.p]));fn=(isExp?'exports':'imports')+'_commodity_'+TS.yr;}
@@ -643,195 +736,10 @@ function teImportDBBackup(e){
   reader.readAsText(f,'UTF-8');
 }
 
-// PDF import prototype foundation
-function teSetPdfProtoStatus(message,isError=false){
-  const el=document.getElementById('te-pdf-proto-status');
-  if(!el) return;
-  el.style.display='flex';
-  el.style.color=isError?'var(--imp)':'var(--amber)';
-  el.textContent=message;
-}
-function tePdfPrototypeFileChanged(){
-  const file=document.getElementById('te-pdf-proto-file')?.files?.[0];
-  const summary=document.getElementById('te-pdf-proto-summary');
-  const review=document.getElementById('te-pdf-draft-review');
-  const debug=document.getElementById('te-pdf-debug');
-  if(summary){summary.style.display='none';summary.textContent='';}
-  if(review) review.style.display='none';
-  if(debug) debug.style.display='none';
-  if(file) teSetPdfProtoStatus(`تم اختيار الملف: ${file.name}`);
-}
-async function teParsePdfPrototype(){
-  const file=document.getElementById('te-pdf-proto-file')?.files?.[0];
-  const targetYear=document.getElementById('te-pdf-target-year')?.value||'2013';
-  const summary=document.getElementById('te-pdf-proto-summary');
-  const review=document.getElementById('te-pdf-draft-review');
-  if(!file){teSetPdfProtoStatus('اختر ملف PDF أولاً.',true);return;}
-  try{
-    teSetPdfProtoStatus('جاري استخراج نص الصفحات فقط...');
-    const pages=await window.SEO_SERVICES.pdfText.extractPdfPages(file,(progress)=>{
-      if(progress.phase==='file-received') teSetPdfProtoStatus(`تم تمرير الملف إلى خدمة PDF: ${progress.fileName} (${Number(progress.fileSizeBytes||0).toLocaleString()} bytes)`);
-      if(progress.phase==='array-buffer-start') teSetPdfProtoStatus('جاري قراءة ملف PDF من المتصفح...');
-      if(progress.phase==='array-buffer-done') teSetPdfProtoStatus(`تمت قراءة ملف PDF (${Number(progress.byteLength||0).toLocaleString()} bytes). جاري بدء PDF.js...`);
-      if(progress.phase==='get-document-start') teSetPdfProtoStatus(`بدأ PDF.js getDocument (${progress.mode})...`);
-      if(progress.phase==='worker-fallback-start') teSetPdfProtoStatus(`تعذر عامل PDF.js الخارجي، يجري استخدام fallback محلي... ${progress.message}`);
-      if(progress.phase==='get-document-done') teSetPdfProtoStatus(`اكتمل تحميل PDF.js (${progress.mode}) · الصفحات: ${progress.totalPages}. جاري استخراج النص...`);
-      if(progress.phase==='page-start') teSetPdfProtoStatus(`جاري استخراج نص الصفحات فقط... ${progress.pageNumber}/${progress.totalPages}`);
-      if(progress.phase==='page-done') teSetPdfProtoStatus(`تم استخراج الصفحة ${progress.pageNumber}/${progress.totalPages}`);
-    });
-    const okPages=pages.filter(p=>p.extractionStatus==='ok');
-    const pagesWithText=okPages.filter(p=>p.text).length;
-    const totalItems=pages.reduce((sum,p)=>sum+(p.itemsCount||0),0);
-    let normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized);
-    if(!normalized.extractionRules.length&&window.SEO_DATA.CBOS_RULE_FAMILIES?.profiles){
-      normalized.extractionRules=window.SEO_SERVICES.storage.clone(window.SEO_DATA.CBOS_RULE_FAMILIES.profiles);
-    }
-    const sourceFile=window.SEO_SERVICES.trade.createSourceFileMetadata(file,{targetYear,notes:'Created by PDF text extraction foundation'});
-    const parseSummary={
-      pagesParsed:pages.length,
-      pagesWithText,
-      totalTextItems:totalItems,
-      failedPages:pages.filter(p=>p.extractionStatus!=='ok').map(p=>p.pageNumber),
-    };
-    const parsePreviewPages=pages.map(p=>({
-      pageNumber:p.pageNumber,
-      text:p.text||'',
-      textLength:(p.text||'').length,
-      itemsCount:p.itemsCount||0,
-      extractionStatus:p.extractionStatus||'unknown',
-    }));
-    const batch=window.SEO_SERVICES.trade.createDraftImportBatch(sourceFile,{
-      targetYear,
-      parserVersion:'pdf-text-foundation-v1',
-      ruleFamilyId:'cbos-legacy-q4-word-distiller',
-      extractionRuleId:targetYear==='2014'?'cbos-2014-q4-v1':'cbos-2013-q4-v1',
-      parseSummary,
-      notes:`Text extracted from ${file.name}. No observations created in B2 Step 1.`,
-    });
-    batch.debugPreviewPages=parsePreviewPages;
-    window.SEO_PDF_PAGE_CACHE[batch.id]=parsePreviewPages;
-    normalized.sourceFiles.push(sourceFile);
-    normalized.importBatches.push(batch);
-    normalized=window.SEO_SERVICES.trade.saveDraftObservations(normalized,batch.id,[]);
-    DB.normalized=normalized;
-    saveDB();
-    DB=loadDB();
-    if(summary){
-      summary.style.display='block';
-      summary.textContent=[
-        `file: ${file.name}`,
-        `targetYear: ${targetYear}`,
-        `pagesParsed: ${parseSummary.pagesParsed}`,
-        `pagesWithText: ${parseSummary.pagesWithText}`,
-        `totalTextItems: ${parseSummary.totalTextItems}`,
-        `batchId: ${batch.id}`,
-        `status: ${batch.status}`,
-        `draftObservations: 0`,
-      ].join('\n');
-    }
-    if(review) review.style.display='flex';
-    tePdfDebugRenderBatch(batch);
-    teDraftReviewRender(batch.id);
-    teSetPdfProtoStatus(`تم إنشاء draft batch فقط: ${pages.length} صفحة، بدون نشر بيانات.`);
-    addFileTag('te-loaded-files',file.name,`Draft PDF batch · ${pages.length} pages`);
-  }catch(err){
-    teSetPdfProtoStatus('تعذر استخراج نص PDF: '+err.message,true);
-  }finally{
-    const status=document.getElementById('te-pdf-proto-status');
-    if(status&&status.textContent==='جاري استخراج نص الصفحات فقط...') status.textContent='انتهت محاولة استخراج النص بدون إنشاء batch. راجع رسالة الخطأ أو أعد المحاولة.';
-  }
-}
-function tePdfDebugLatestBatch(targetYear){
-  const batches=window.SEO_SERVICES.trade.getDraftImportBatches(DB.normalized||{});
-  const found=batches.slice().reverse().find(batch=>(Array.isArray(batch.debugPreviewPages)&&batch.debugPreviewPages.length||Array.isArray(window.SEO_PDF_PAGE_CACHE[batch.id])&&window.SEO_PDF_PAGE_CACHE[batch.id].length)&&(targetYear===undefined||String(batch.targetYear)===String(targetYear)))||null;
-  return found?teHydrateBatchPages(found):null;
-}
-function tePdfLatestParsedBatch(targetYear){
-  const batches=DB.normalized?.importBatches||[];
-  const found=batches.slice().reverse().find(batch=>(Array.isArray(batch.debugPreviewPages)&&batch.debugPreviewPages.length||Array.isArray(window.SEO_PDF_PAGE_CACHE[batch.id])&&window.SEO_PDF_PAGE_CACHE[batch.id].length)&&(targetYear===undefined||String(batch.targetYear)===String(targetYear)))||tePdfDebugLatestBatch(targetYear);
-  return found?teHydrateBatchPages(found):null;
-}
-function teHydrateBatchPages(batch){
-  if(!batch) return null;
-  if(Array.isArray(batch.debugPreviewPages)&&batch.debugPreviewPages.length) return batch;
-  const cached=window.SEO_PDF_PAGE_CACHE[batch.id];
-  if(Array.isArray(cached)&&cached.length) return {...batch,debugPreviewPages:cached};
-  return batch;
-}
-function tePdfDebugLoadLatest(){
-  const debug=document.getElementById('te-pdf-debug');
-  if(!debug) return;
-  const batch=tePdfLatestParsedBatch();
-  if(batch){
-    tePdfDebugRenderBatch(batch);
-    teDraftReviewRender(batch.id);
-  }
-  teApprovedRegistryRender();
-}
-function tePdfDebugRenderBatch(batch){
-  const debug=document.getElementById('te-pdf-debug');
-  const pageSelect=document.getElementById('te-pdf-page-select');
-  if(!debug||!pageSelect||!batch?.debugPreviewPages?.length) return;
-  debug.style.display='block';
-  debug.dataset.batchId=batch.id;
-  const current=pageSelect.value;
-  pageSelect.innerHTML=batch.debugPreviewPages.map(page=>`<option value="${page.pageNumber}">Page ${page.pageNumber}</option>`).join('');
-  const pageNumbers=batch.debugPreviewPages.map(page=>String(page.pageNumber));
-  pageSelect.value=pageNumbers.includes(current)?current:String(batch.debugPreviewPages[0].pageNumber);
-  tePdfDebugShowPage();
-}
-function tePdfDebugCurrentPages(){
-  const batchId=document.getElementById('te-pdf-debug')?.dataset.batchId;
-  const batch=(DB.normalized?.importBatches||[]).find(item=>item.id===batchId)||tePdfDebugLatestBatch();
-  return batch?.debugPreviewPages||[];
-}
-function tePdfDebugShowPage(){
-  const pages=tePdfDebugCurrentPages();
-  const selected=Number(document.getElementById('te-pdf-page-select')?.value||pages[0]?.pageNumber||1);
-  const page=pages.find(item=>Number(item.pageNumber)===selected)||pages[0];
-  const meta=document.getElementById('te-pdf-page-meta');
-  const textBox=document.getElementById('te-pdf-page-text');
-  if(!page||!meta||!textBox) return;
-  meta.textContent=`Page ${page.pageNumber} · text length: ${page.textLength||0} · itemsCount: ${page.itemsCount||0} · status: ${page.extractionStatus}`;
-  textBox.textContent=page.text||'No extracted text for this page.';
-}
-function tePdfDebugGoPage(pageNumber){
-  const pages=tePdfDebugCurrentPages();
-  const pageSelect=document.getElementById('te-pdf-page-select');
-  if(!pageSelect||!pages.length) return;
-  const match=pages.find(page=>Number(page.pageNumber)===Number(pageNumber))||pages[0];
-  pageSelect.value=String(match.pageNumber);
-  tePdfDebugShowPage();
-}
-function tePdfDebugPreset(term){
-  const input=document.getElementById('te-pdf-search');
-  if(input) input.value=term;
-  tePdfDebugSearch();
-}
-function tePdfDebugSearch(){
-  const pages=tePdfDebugCurrentPages();
-  const term=(document.getElementById('te-pdf-search')?.value||'').trim();
-  const box=document.getElementById('te-pdf-search-results');
-  if(!box) return;
-  if(!term){
-    box.style.display='block';
-    box.textContent='Enter a search term.';
-    return;
-  }
-  const needle=term.toLowerCase();
-  const results=pages.map(page=>{
-    const text=page.text||'';
-    const lower=text.toLowerCase();
-    let count=0,idx=lower.indexOf(needle);
-    const firstIdx=idx;
-    while(idx!==-1){count++;idx=lower.indexOf(needle,idx+needle.length);}
-    if(!count) return null;
-    const start=Math.max(0,firstIdx-70),end=Math.min(text.length,firstIdx+term.length+100);
-    return {pageNumber:page.pageNumber,count,snippet:text.slice(start,end).replace(/\s+/g,' ').trim()};
-  }).filter(Boolean);
-  box.style.display='block';
-  box.textContent=results.length?results.map(r=>`Page ${r.pageNumber} · matches: ${r.count}\n${r.snippet}`).join('\n\n'):'No matches found.';
-}
+// teParsePdfPrototype kept as stub for legacy batch references in existing storage
+function teParsePdfPrototype(){console.warn('PDF parsing removed — use xlsx import instead.');}
+function tePdfDebugLatestBatch(){return null;}
+function tePdfDebugLoadLatest(){teApprovedRegistryRender();}
 function teExtract2013ExportSummaryDraft(){
   const summary=document.getElementById('te-pdf-extraction-summary');
   try{

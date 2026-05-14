@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>المرصد الاقتصادي السوداني</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="src/styles/main.css">
 </head>
@@ -185,221 +185,52 @@
       <div class="card admin-upload" id="te-upload">
         <div class="card-hdr"><div class="card-title">📁 رفع بيانات CBOS</div><span style="font-size:10px;color:var(--imp);font-weight:700">إدارة</span></div>
         <div class="card-body">
-          <div class="dz" id="te-dz" onclick="document.getElementById('te-file').click()" ondragover="dzOver(event,'te-dz')" ondragleave="dzLeave('te-dz')" ondrop="teDzDrop(event)">
-            <div class="dz-ic">📊</div><div class="dz-t">اسحب ملف PDF/CSV هنا</div>
-            <div class="dz-s">يقبل تقارير CBOS الفصلية — يُضاف للقاعدة التراكمية</div>
+
+          <!-- ── Excel Import ── -->
+          <div class="dz" id="te-dz" onclick="document.getElementById('te-xlsx-file').click()" ondragover="dzOver(event,'te-dz')" ondragleave="dzLeave('te-dz')" ondrop="teXlsxDzDrop(event)">
+            <div class="dz-ic">📊</div>
+            <div class="dz-t">اسحب ملف Excel هنا</div>
+            <div class="dz-s">يقبل ملفات CBOS_*_validated_production_rowtyped_v2.xlsx — يُضاف للقاعدة التراكمية</div>
           </div>
-          <input type="file" id="te-file" accept=".pdf,.csv" style="display:none" onchange="teLoadFile(event)">
+          <input type="file" id="te-xlsx-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="teXlsxFileSelected(event)">
           <input type="file" id="te-db-file" accept=".json,application/json" style="display:none" onchange="teImportDBBackup(event)">
-          <input type="file" id="te-pdf-proto-file" accept=".pdf,application/pdf" style="display:none" onchange="tePdfPrototypeFileChanged()">
-          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" style="font-size:10px" onclick="teDLTemplate()">⬇ نموذج CSV</button>
-            <button class="btn btn-ghost" style="font-size:10px" onclick="teDLAll()">⬇ تصدير الكل</button>
+
+          <!-- Status + Pre-import Summary -->
+          <div id="te-xlsx-status" class="note" style="display:none;margin-top:10px"></div>
+          <div id="te-xlsx-summary" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg2)">
+            <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:8px">📋 ملخص الملف — جاهز للاستيراد</div>
+            <div id="te-xlsx-summary-body" style="font-size:11px;line-height:1.8;color:var(--t2)"></div>
+            <div id="te-xlsx-review-warning" style="display:none;margin-top:8px;padding:8px;border-radius:6px;background:rgba(180,83,9,.08);border:1px solid rgba(180,83,9,.3);font-size:11px;color:var(--amber)"></div>
+            <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center">
+              <input id="te-xlsx-approve-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;flex:1;min-width:200px" placeholder="APPROVE XLSX BATCH">
+              <button class="btn btn-navy" style="font-size:10px" onclick="teApproveXlsxBatch()">✅ اعتماد وإضافة للقاعدة</button>
+              <button class="btn btn-ghost" style="font-size:10px" onclick="teCancelXlsxImport()">إلغاء</button>
+            </div>
+            <div id="te-xlsx-approve-status" style="margin-top:6px;font-size:11px"></div>
+          </div>
+
+          <!-- Review Required Panel -->
+          <div id="te-xlsx-review-panel" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg2)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div style="font-size:11px;font-weight:700;color:var(--amber)">⚠ صفوف تحتاج مراجعة (مستبعدة من الاستيراد)</div>
+              <button class="btn btn-ghost" style="font-size:10px" onclick="document.getElementById('te-xlsx-review-panel').style.display='none'">إخفاء</button>
+            </div>
+            <div class="tbl-wrap" style="max-height:180px">
+              <table class="dt">
+                <thead><tr><th>السنة</th><th>التدفق</th><th>الفترة</th><th>الصفحة</th><th>نوع المشكلة</th><th>الإجراء المقترح</th></tr></thead>
+                <tbody id="te-xlsx-review-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Utility Buttons -->
+          <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:10px" onclick="teDLAll()">⬇ تصدير الكل CSV</button>
             <button class="btn btn-ghost" style="font-size:10px" onclick="teExportDBBackup()">⬇ نسخة JSON</button>
             <button class="btn btn-ghost" style="font-size:10px" onclick="document.getElementById('te-db-file').click()">⬆ استيراد JSON</button>
             <button class="btn btn-ghost" style="font-size:10px;color:var(--imp);border-color:rgba(185,28,28,.35)" onclick="openTradeResetModal()">مسح بيانات التجارة</button>
           </div>
-          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">
-            <div class="card-title" style="margin-bottom:8px">PDF Import Prototype</div>
-            <div class="te-frow">
-              <div class="fg"><label>السنة المستهدفة</label><select id="te-pdf-target-year"><option value="2013">2013</option><option value="2014">2014</option></select></div>
-              <div class="fg" style="flex-direction:row;align-items:flex-end;gap:5px">
-                <button class="btn btn-ghost" style="font-size:10px" onclick="document.getElementById('te-pdf-proto-file').click()">اختيار PDF</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teParsePdfPrototype()">Parse PDF Text</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="teDiscover2013MonthlyImportsTable()">Discover 2013 Monthly Imports Table</button>
-              </div>
-            </div>
-            <div id="te-pdf-proto-status" class="note" style="display:none;margin-top:8px"></div>
-            <div id="te-pdf-proto-summary" class="raw-preview" style="display:none;margin-top:8px;max-height:90px"></div>
-            <div id="te-pdf-draft-review" class="note" style="display:none;margin-top:8px">Review placeholder: لا توجد ملاحظات مسودة في هذه المرحلة.</div>
-            <div id="te-pdf-debug" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-              <div class="card-title" style="margin-bottom:8px">PDF Text Debug Inspector</div>
-              <div class="te-frow">
-                <div class="fg"><label>الصفحة</label><select id="te-pdf-page-select" onchange="tePdfDebugShowPage()"></select></div>
-                <div class="fg"><label>بحث في الصفحات</label><input id="te-pdf-search" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="Search extracted text"></div>
-                <div class="fg" style="flex-direction:row;align-items:flex-end;gap:5px">
-                  <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugSearch()">بحث</button>
-                </div>
-              </div>
-              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(4)">p4 contents</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(5)">p5 trade balance</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(8)">p8 exports summary</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(10)">p10 exports monthly</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(11)">p11 exports quarterly</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(20)">p20 imports summary</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(22)">p22 imports monthly</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(25)">p25 imports quarterly</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(31)">p31 imports country monthly</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugGoPage(34)">p34 imports country/commodity</button>
-              </div>
-              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Summary Of Exports')">Summary Of Exports</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Summary Of Imports')">Summary Of Imports</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Exports by commodities')">Exports by commodities</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Imports by Commodities')">Imports by Commodities</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Exports By country')">Exports By country</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Imports by Country')">Imports by Country</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Trade Balance')">Trade Balance</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Gold')">Gold</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="tePdfDebugPreset('Total')">Total</button>
-              </div>
-              <div id="te-pdf-page-meta" class="note" style="margin-top:8px"></div>
-              <div id="te-pdf-page-text" class="raw-preview" style="display:block;margin-top:8px;max-height:180px"></div>
-              <div id="te-pdf-search-results" class="raw-preview" style="display:none;margin-top:8px;max-height:140px"></div>
-              <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2013ExportSummaryDraft()">Extract 2013 Export Summary Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2013ImportSummaryDraft()">Extract 2013 Import Summary Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2014ExportSummaryDraft()">Extract 2014 Export Summary Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2014ImportSummaryDraft()">Extract 2014 Import Summary Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2013MonthlyExportsDraft()">Extract 2013 Monthly Exports Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2013MonthlyImportsDraft()">Extract 2013 Monthly Imports Draft</button>
-                <button class="btn btn-ghost" style="font-size:10px" onclick="teRun2014GridInspector()">Inspect 2014 Grid</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2014MonthlyExportsDraft()">Extract 2014 Monthly Exports Draft</button>
-                <button class="btn btn-navy" style="font-size:10px" onclick="teExtract2014MonthlyImportsDraft()">Extract 2014 Monthly Imports Draft</button>
-              </div>
-              <div id="te-pdf-extraction-summary" class="note" style="display:none;margin-top:8px"></div>
-              <div id="te-imports-discovery-panel" class="note" style="display:none;margin-top:8px;white-space:pre-wrap;direction:ltr;text-align:left;max-height:260px;overflow:auto"></div>
-              <div id="te-2014-grid-inspector" class="note" style="display:none;margin-top:8px;white-space:pre-wrap;direction:ltr;text-align:left;max-height:360px;overflow:auto"></div>
-              <div id="te-draft-review" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-                <div class="card-title" style="margin-bottom:8px">Draft Review Table</div>
-                <div id="te-draft-review-summary" class="note" style="margin-bottom:8px"></div>
-                <div id="te-monthly-validation-panel" class="note" style="display:none;margin-bottom:8px;white-space:pre-wrap;direction:ltr;text-align:left"></div>
-                <div id="te-monthly-readiness-panel" class="note" style="display:none;margin-bottom:8px;white-space:pre-wrap;direction:ltr;text-align:left"></div>
-                <div id="te-monthly-import-readiness-panel" class="note" style="display:none;margin-bottom:8px;white-space:pre-wrap;direction:ltr;text-align:left"></div>
-                <div id="te-monthly-reconciliation-panel" class="note" style="display:none;margin-bottom:8px;white-space:pre-wrap;direction:ltr;text-align:left;max-height:260px;overflow:auto"></div>
-                <div id="te-draft-review-filters" class="note" style="display:none;margin-bottom:8px">
-                  <div class="te-frow">
-                    <div class="fg"><label>Flow</label>
-                      <select id="te-draft-filter-flow" onchange="teDraftReviewRender()">
-                        <option value="all">All</option>
-                        <option value="export">Export</option>
-                        <option value="import">Import</option>
-                      </select>
-                    </div>
-                    <div class="fg"><label>Rule</label>
-                      <select id="te-draft-filter-rule" onchange="teDraftReviewRender()">
-                        <option value="all">All</option>
-                        <option value="cbos-2013-exports-summary-v1">2013 exports summary</option>
-                        <option value="cbos-2013-imports-summary-v1">2013 imports summary</option>
-                        <option value="cbos-2014-exports-summary-v1">2014 exports summary</option>
-                        <option value="cbos-2014-imports-summary-v1">2014 imports summary</option>
-                        <option value="cbos-2013-monthly-exports-v1">2013 monthly exports</option>
-                        <option value="cbos-2013-monthly-imports-v1">2013 monthly imports</option>
-                        <option value="cbos-2014-monthly-exports-v1">2014 monthly exports</option>
-                        <option value="cbos-2014-monthly-imports-v1">2014 monthly imports</option>
-                      </select>
-                    </div>
-                    <div class="fg"><label>Period</label>
-                      <select id="te-draft-filter-period" onchange="teDraftReviewRender()">
-                        <option value="all">All</option>
-                        <option value="annual">Annual</option>
-                        <option value="monthly">Monthly</option>
-                      </select>
-                    </div>
-                    <div class="fg"><label>Month</label>
-                      <select id="te-draft-filter-month" onchange="teDraftReviewRender()">
-                        <option value="all">All</option>
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                      </select>
-                    </div>
-                    <div class="fg"><label>Commodity</label><input id="te-draft-filter-commodity" oninput="teDraftReviewRender()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="Commodity or alias"></div>
-                  </div>
-                </div>
-                <div id="te-draft-approval-controls" class="note" style="display:none;margin-bottom:8px;flex-direction:column;align-items:stretch">
-                  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                    <input id="te-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2013 EXPORT SUMMARY">
-                    <button id="te-approve-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2013ExportSummaryBatch()">Approve Draft Batch</button>
-                    <input id="te-import-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2013 IMPORT SUMMARY">
-                    <button id="te-approve-import-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2013ImportSummaryBatch()">Approve Import Draft</button>
-                    <input id="te-2014-export-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2014 EXPORT SUMMARY">
-                    <button id="te-validate-2014-export-btn" class="btn btn-ghost" style="font-size:10px" onclick="teValidate2014ExportSummaryDraft()">Validate 2014 Export</button>
-                    <button id="te-approve-2014-export-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2014ExportSummaryBatch()">Approve 2014 Export</button>
-                    <input id="te-2014-import-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2014 IMPORT SUMMARY">
-                    <button id="te-validate-2014-import-btn" class="btn btn-ghost" style="font-size:10px" onclick="teValidate2014ImportSummaryDraft()">Validate 2014 Import</button>
-                    <button id="te-approve-2014-import-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2014ImportSummaryBatch()">Approve 2014 Import</button>
-                    <input id="te-monthly-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2013 MONTHLY EXPORTS">
-                    <button id="te-approve-monthly-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2013MonthlyExportsBatch()">Approve Monthly Exports</button>
-                    <input id="te-monthly-import-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2013 MONTHLY IMPORTS">
-                    <button id="te-approve-monthly-import-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2013MonthlyImportsBatch()">Approve Monthly Imports</button>
-                    <input id="te-2014-monthly-export-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2014 MONTHLY EXPORTS">
-                    <button id="te-approve-2014-monthly-export-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2014MonthlyExportsBatch()">Approve 2014 Monthly Exports</button>
-                    <input id="te-2014-monthly-import-approval-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:230px" placeholder="APPROVE 2014 MONTHLY IMPORTS">
-                    <button id="te-approve-2014-monthly-import-batch-btn" class="btn btn-navy" style="font-size:10px" onclick="teApprove2014MonthlyImportsBatch()">Approve 2014 Monthly Imports</button>
-                    <input id="te-reject-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:190px" placeholder="REJECT DRAFT BATCH">
-                    <button class="btn btn-ghost" style="font-size:10px;color:var(--imp);border-color:rgba(185,28,28,.35)" onclick="teRejectDraftBatch()">Reject Draft Batch</button>
-                    <input id="te-reject-import-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:210px" placeholder="REJECT IMPORT DRAFT BATCH">
-                    <button class="btn btn-ghost" style="font-size:10px;color:var(--imp);border-color:rgba(185,28,28,.35)" onclick="teRejectImportDraftBatch()">Reject Import Draft</button>
-                  </div>
-                  <div id="te-approval-status" style="margin-top:6px"></div>
-                </div>
-                <div class="tbl-wrap" style="max-height:260px">
-                  <table class="dt">
-                    <thead>
-                      <tr>
-                        <th>Flow</th>
-                        <th>Period</th>
-                        <th>Month</th>
-                        <th>Commodity</th>
-                        <th>Unit</th>
-                        <th>Quantity</th>
-                        <th>Value (000 USD)</th>
-                        <th>Page</th>
-                        <th>Rule</th>
-                        <th>Status</th>
-                        <th>Validation</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="te-draft-review-body"></tbody>
-                  </table>
-                </div>
-              </div>
-              <div id="te-approved-registry" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-                <div class="card-title" style="margin-bottom:8px">Approved Batch Registry</div>
-                <div id="te-approved-registry-summary" class="note" style="margin-bottom:8px"></div>
-                <div id="te-rollback-controls" class="note" style="display:none;margin-bottom:8px;flex-direction:column;align-items:stretch">
-                  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                    <select id="te-rollback-batch-select" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;min-width:220px" onchange="teApprovedRegistryRender();teRollbackPreview()"></select>
-                    <button class="btn btn-ghost" style="font-size:10px" onclick="teRollbackPreview()">Preview Rollback</button>
-                    <input id="te-rollback-confirm" style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px;direction:ltr;min-width:220px" placeholder="ROLLBACK APPROVED BATCH">
-                    <button class="btn btn-ghost" style="font-size:10px;color:var(--imp);border-color:rgba(185,28,28,.35)" onclick="teRollbackApprovedBatch()">Rollback Approved Batch</button>
-                  </div>
-                  <div id="te-rollback-preview" class="raw-preview" style="display:none;margin-top:6px;max-height:120px"></div>
-                  <div id="te-rollback-status" style="margin-top:6px"></div>
-                </div>
-                <div class="tbl-wrap" style="max-height:220px">
-                  <table class="dt">
-                    <thead>
-                      <tr>
-                        <th>Batch ID</th>
-                        <th>Source File</th>
-                        <th>Flow</th>
-                        <th>Rule</th>
-                        <th>Rows</th>
-                        <th>Total (000 USD)</th>
-                        <th>Approved At</th>
-                        <th>Year</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody id="te-approved-registry-body"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
+
           <div id="te-loaded-files"></div>
           <div class="note" style="margin-top:8px">📌 كل ملف يُرفع يُضاف للقاعدة — لا استبدال للبيانات السابقة.</div>
         </div>
@@ -762,8 +593,8 @@
 <script src="src/services/forum-service.js"></script>
 <script src="src/services/library-service.js"></script>
 <script src="src/services/gaps-service.js"></script>
-<script src="src/services/pdf-text-service.js"></script>
 <script src="src/services/trade-service.js"></script>
+<script src="xlsx-import-service.js"></script>
 <script src="src/services/trade-extraction-service.js"></script>
 <script src="src/app.js"></script>
 </body>
