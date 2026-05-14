@@ -251,18 +251,60 @@
               <div id="te-xlsx-annual-status" style="margin-top:6px;font-size:11px"></div>
             </div>
 
-            <!-- Monthly / Quarterly (pending) -->
+            <!-- Monthly Commodity -->
             <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
-              <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:4px">Monthly &amp; Quarterly Layers</div>
-              <div id="te-xlsx-monthly-note" style="font-size:10px;color:var(--t3)"></div>
-              <div style="font-size:10px;color:var(--t3);margin-top:4px">
-                Scope: year · source=excel · batchId · layer=monthly | quarterly (separate approvals)
+              <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px">Approve Monthly Layer (Commodity)</div>
+              <div id="te-xlsx-monthly-readiness" class="note" style="margin-bottom:8px;font-size:10px;font-family:monospace;direction:ltr;text-align:left"></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <input id="te-xlsx-monthly-confirm"
+                  style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:monospace;font-size:11px;direction:ltr;min-width:240px"
+                  placeholder="APPROVE 2025 EXCEL MONTHLY">
+                <button id="te-xlsx-monthly-approve-btn" class="btn btn-navy" style="font-size:10px" onclick="teApproveXlsxMonthly()">Approve Monthly Layer</button>
               </div>
+              <div style="font-size:10px;color:var(--t3);margin-top:4px">Scope: year · source=excel · batchId · ruleId=xlsx-monthly-commodity-v1</div>
+              <div id="te-xlsx-monthly-status" style="margin-top:6px;font-size:11px"></div>
             </div>
 
-            <!-- Confirm label display -->
-            <div style="font-size:10px;color:var(--t3);margin-top:10px;font-family:monospace">
-              Annual confirmation phrase: <span id="te-xlsx-annual-confirm-label" style="color:var(--t2)">APPROVE 2025 EXCEL ANNUAL</span>
+            <!-- Quarterly Commodity -->
+            <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px">Approve Quarterly Layer (Commodity)</div>
+              <div id="te-xlsx-quarterly-readiness" class="note" style="margin-bottom:8px;font-size:10px;font-family:monospace;direction:ltr;text-align:left"></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <input id="te-xlsx-quarterly-confirm"
+                  style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:monospace;font-size:11px;direction:ltr;min-width:240px"
+                  placeholder="APPROVE 2025 EXCEL QUARTERLY">
+                <button id="te-xlsx-quarterly-approve-btn" class="btn btn-navy" style="font-size:10px" onclick="teApproveXlsxQuarterly()">Approve Quarterly Layer</button>
+              </div>
+              <div style="font-size:10px;color:var(--t3);margin-top:4px">Scope: year · source=excel · batchId · ruleId=xlsx-quarterly-commodity-v1</div>
+              <div id="te-xlsx-quarterly-status" style="margin-top:6px;font-size:11px"></div>
+            </div>
+
+            <!-- Monthly Country -->
+            <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px">Approve Monthly Layer (Country)</div>
+              <div id="te-xlsx-mc-readiness" class="note" style="margin-bottom:8px;font-size:10px;font-family:monospace;direction:ltr;text-align:left"></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <input id="te-xlsx-mc-confirm"
+                  style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:monospace;font-size:11px;direction:ltr;min-width:240px"
+                  placeholder="APPROVE 2025 EXCEL MONTHLY COUNTRY">
+                <button id="te-xlsx-mc-approve-btn" class="btn btn-navy" style="font-size:10px" onclick="teApproveXlsxMonthlyCountry()">Approve Monthly Country Layer</button>
+              </div>
+              <div style="font-size:10px;color:var(--t3);margin-top:4px">Scope: year · source=excel · batchId · ruleId=xlsx-monthly-country-v1</div>
+              <div id="te-xlsx-mc-status" style="margin-top:6px;font-size:11px"></div>
+            </div>
+
+            <!-- Country × Commodity Annual -->
+            <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);margin-bottom:6px">Approve Annual Layer (Country × Commodity)</div>
+              <div id="te-xlsx-cc-readiness" class="note" style="margin-bottom:8px;font-size:10px;font-family:monospace;direction:ltr;text-align:left"></div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                <input id="te-xlsx-cc-confirm"
+                  style="padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:monospace;font-size:11px;direction:ltr;min-width:240px"
+                  placeholder="APPROVE 2025 EXCEL COUNTRY COMMODITY">
+                <button id="te-xlsx-cc-approve-btn" class="btn btn-navy" style="font-size:10px" onclick="teApproveXlsxCountryCommodity()">Approve Country×Commodity Layer</button>
+              </div>
+              <div style="font-size:10px;color:var(--t3);margin-top:4px">Scope: year · source=excel · batchId · ruleId=xlsx-country-commodity-v1 · excluded from standard aggregation</div>
+              <div id="te-xlsx-cc-status" style="margin-top:6px;font-size:11px"></div>
             </div>
           </div>
 
