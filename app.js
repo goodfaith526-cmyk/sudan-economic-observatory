@@ -595,63 +595,221 @@ function teCancelXlsxImport(){
   _teXlsxSetStatus('تم إلغاء الاستيراد','var(--t3)');
 }
 
-function teApproveXlsxBatch(){
-  const confirmVal=(document.getElementById('te-xlsx-approve-confirm')?.value||'').trim();
-  const statusEl=document.getElementById('te-xlsx-approve-status');
-  const result=window._pendingXlsxImport;
+// ── xlsx draft-batch creation ─────────────────────────────────────────────
 
-  if(!result){
-    if(statusEl) statusEl.textContent='لا يوجد ملف محمّل.';
-    return;
-  }
-  if(confirmVal!=='APPROVE XLSX BATCH'){
-    if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='اكتب APPROVE XLSX BATCH للتأكيد.';}
-    return;
-  }
+function teCreateXlsxDraftBatch(){
+  const result=window._pendingXlsxImport;
+  const statusEl=document.getElementById('te-xlsx-approve-status');
+  if(!result){if(statusEl)statusEl.textContent='لا يوجد ملف محمّل.';return;}
 
   try{
     let normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized||{});
 
-    // Add source file
-    const existingSource=normalized.sourceFiles.find(s=>s.id===result.sourceFile.id);
-    if(!existingSource) normalized.sourceFiles.push(result.sourceFile);
+    // Source file
+    if(!normalized.sourceFiles.find(s=>s.id===result.sourceFile.id))
+      normalized.sourceFiles.push(result.sourceFile);
 
-    // Add import batch (mark approved immediately — validation already done externally)
-    result.importBatch.status='approved';
-    result.importBatch.approvedAt=new Date().toISOString();
-    result.importBatch.approvedYear=result.importSummary.coveredYear;
-    const existingBatch=normalized.importBatches.find(b=>b.id===result.importBatch.id);
-    if(!existingBatch) normalized.importBatches.push(result.importBatch);
+    // Import batch — stays draft
+    result.importBatch.status='draft';
+    result.importBatch.ruleApprovals={};
+    if(!normalized.importBatches.find(b=>b.id===result.importBatch.id))
+      normalized.importBatches.push(result.importBatch);
 
-    // Add published totals
-    const existingTotalIds=new Set(normalized.publishedTotals.map(t=>t.id));
-    result.publishedTotals.forEach(t=>{ if(!existingTotalIds.has(t.id)) normalized.publishedTotals.push(t); });
+    // Published totals (trade_balance_summary aggregates — reference data)
+    const existingIds=new Set(normalized.publishedTotals.map(t=>t.id));
+    result.publishedTotals.forEach(t=>{if(!existingIds.has(t.id)) normalized.publishedTotals.push(t);});
 
-    // Mark active year batch
+    // Activate year so balance totals are visible
     const year=String(result.importSummary.coveredYear);
     normalized.activeYearBatches=normalized.activeYearBatches||{};
     normalized.activeYearBatches[year]=result.importBatch.id;
 
-    // Publish observations directly (validation already passed in Excel file)
-    const publishedObs=result.draftObservations.map(obs=>({...obs,reviewStatus:'approved',isPublished:true}));
-    const existingObsIds=new Set(normalized.observations.map(o=>o.id));
-    publishedObs.forEach(o=>{ if(!existingObsIds.has(o.id)) normalized.observations.push(o); });
+    // Draft observations — all layers, isPublished=false
+    normalized=window.SEO_SERVICES.trade.saveDraftObservations(normalized,result.importBatch.id,result.draftObservations);
 
     DB.normalized=normalized;
-    saveDB();
-    DB=loadDB();
-    teInit();
-    teRun();
+    saveDB();DB=loadDB();
 
+    const batchId=result.importBatch.id;
     window._pendingXlsxImport=null;
     document.getElementById('te-xlsx-summary').style.display='none';
-    document.getElementById('te-xlsx-review-panel').style.display='none';
-    _teXlsxSetStatus(`✅ تمت إضافة بيانات ${year} — ${result.importSummary.totalObservations.toLocaleString()} مشاهدة — ${result.importSummary.publishedTotalsCount} إجمالي ميزان`,'var(--exp)');
-    addFileTag('te-loaded-files',result.sourceFile.originalFilename,`✅ ${year} · ${result.importSummary.totalObservations.toLocaleString()} سجل`);
-    if(statusEl){statusEl.style.color='var(--exp)';statusEl.textContent='✅ تم الاعتماد بنجاح';}
+
+    _teXlsxSetStatus(`✅ تم حفظ Draft Batch — ${result.importSummary.totalObservations.toLocaleString()} مشاهدة في وضع مسودة`,'var(--exp)');
+    addFileTag('te-loaded-files',result.sourceFile.originalFilename,`🗂 Draft ${year}`);
+    teXlsxDraftReviewRender(batchId);
+    if(statusEl){statusEl.style.color='var(--exp)';statusEl.textContent='';}
 
   }catch(err){
     if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='❌ خطأ: '+err.message;}
+  }
+}
+
+// ── xlsx draft review renderer ────────────────────────────────────────────
+
+const XLSX_DATASETS=[
+  {key:'annual-commodity',   label:'Annual Summary (Commodity)',   ruleId:'xlsx-annual-summary-v1',    periodType:'annual'},
+  {key:'monthly-commodity',  label:'Monthly (Commodity)',          ruleId:'xlsx-monthly-commodity-v1', periodType:'monthly'},
+  {key:'quarterly-commodity',label:'Quarterly (Commodity)',        ruleId:'xlsx-quarterly-commodity-v1',periodType:'quarterly'},
+  {key:'monthly-country',    label:'Monthly (Country)',            ruleId:'xlsx-monthly-country-v1',   periodType:'monthly'},
+  {key:'country-commodity-annual',label:'Annual (Country × Commodity)',ruleId:'xlsx-country-commodity-v1',periodType:'annual'},
+];
+
+function teXlsxDraftReviewRender(batchId){
+  const panel=document.getElementById('te-xlsx-draft-review');
+  if(!panel) return;
+
+  const normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized||{});
+  const batch=normalized.importBatches.find(b=>b.id===batchId);
+  if(!batch){panel.style.display='none';return;}
+
+  const draftObs=normalized.draftObservations.filter(o=>o.importBatchId===batchId);
+  const sourceFile=normalized.sourceFiles.find(s=>s.id===batch.sourceFileId);
+  const year=String(batch.targetYear||'');
+  const approvals=batch.ruleApprovals||{};
+
+  // Batch info bar
+  document.getElementById('te-xlsx-draft-batch-info').innerHTML=
+    `<strong>Batch:</strong> <span style="font-family:monospace;font-size:10px">${batchId}</span> &nbsp;|&nbsp;`+
+    `<strong>Year:</strong> ${year} &nbsp;|&nbsp;`+
+    `<strong>File:</strong> ${sourceFile?.originalFilename||'—'} &nbsp;|&nbsp;`+
+    `<strong>Status:</strong> <span style="color:var(--amber)">${batch.status}</span>`;
+
+  // Layer rows
+  const layerRows=XLSX_DATASETS.map(ds=>{
+    const rows=draftObs.filter(o=>o.observationDataset===ds.key);
+    const total=rows.reduce((s,o)=>s+(o.valueUsdThousand||0),0);
+    const approved=approvals[ds.ruleId]?.status==='approved';
+    const statusBadge=approved
+      ?`<span style="color:var(--exp)">✅ approved</span>`
+      :`<span style="color:var(--t3)">⏳ draft</span>`;
+    return `<tr>
+      <td style="font-size:10px;font-family:monospace">${ds.key}</td>
+      <td>${ds.label}</td>
+      <td class="n">${rows.length.toLocaleString()}</td>
+      <td class="n">${rows.length?'$'+Math.round(total).toLocaleString()+'K':'—'}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('te-xlsx-draft-layers').innerHTML=layerRows;
+
+  // Annual readiness
+  const annualRows=draftObs.filter(o=>o.observationDataset==='annual-commodity');
+  const annualExp=annualRows.filter(o=>o.flow==='export');
+  const annualImp=annualRows.filter(o=>o.flow==='import');
+  const annualApproved=approvals['xlsx-annual-summary-v1']?.status==='approved';
+  const expTotal=annualExp.reduce((s,o)=>s+(o.valueUsdThousand||0),0);
+  const impTotal=annualImp.reduce((s,o)=>s+(o.valueUsdThousand||0),0);
+
+  const readinessLines=[];
+  readinessLines.push(`Export rows: ${annualExp.length} · total: $${Math.round(expTotal).toLocaleString()}K`);
+  readinessLines.push(`Import rows: ${annualImp.length} · total: $${Math.round(impTotal).toLocaleString()}K`);
+  if(!annualRows.length) readinessLines.push('⚠ No annual-commodity draft observations found.');
+
+  document.getElementById('te-xlsx-annual-readiness').textContent=readinessLines.join(' | ');
+
+  const confirmPlaceholder=`APPROVE ${year} EXCEL ANNUAL`;
+  const confirmInput=document.getElementById('te-xlsx-annual-confirm');
+  if(confirmInput) confirmInput.placeholder=confirmPlaceholder;
+  document.getElementById('te-xlsx-annual-confirm-label').textContent=confirmPlaceholder;
+
+  const approveBtn=document.getElementById('te-xlsx-annual-approve-btn');
+  if(approveBtn){
+    approveBtn.disabled=annualApproved||!annualRows.length;
+    approveBtn.textContent=annualApproved?'✅ Approved':'Approve Annual Layer';
+  }
+
+  const monthlyNote=document.getElementById('te-xlsx-monthly-note');
+  const annualApprovalBadge=approvals['xlsx-annual-summary-v1'];
+  if(monthlyNote){
+    if(!annualApprovalBadge||annualApprovalBadge.status!=='approved')
+      monthlyNote.textContent='APPROVE '+year+' EXCEL MONTHLY — available after annual approval';
+    else
+      monthlyNote.textContent='APPROVE '+year+' EXCEL MONTHLY — annual approved ✅ · monthly/quarterly approval coming next';
+  }
+
+  // Store current batchId in panel for approval functions to read
+  panel.dataset.batchId=batchId;
+  panel.style.display='block';
+}
+
+function teXlsxLoadExistingDrafts(){
+  const normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized||{});
+  const xlsxDrafts=normalized.importBatches.filter(b=>
+    b.parserVersion==='xlsx-import-v1'&&(b.status==='draft'||b.status==='partially-approved')
+  );
+  if(!xlsxDrafts.length) return;
+  const latest=xlsxDrafts[xlsxDrafts.length-1];
+  teXlsxDraftReviewRender(latest.id);
+}
+
+// ── xlsx scoped approval — annual layer ───────────────────────────────────
+
+function teApproveXlsxAnnual(){
+  const panel=document.getElementById('te-xlsx-draft-review');
+  const batchId=panel?.dataset.batchId;
+  const statusEl=document.getElementById('te-xlsx-annual-status');
+  const confirmVal=(document.getElementById('te-xlsx-annual-confirm')?.value||'').trim();
+
+  if(!batchId){if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='لا يوجد batch محدد.';}return;}
+
+  const normalized=window.SEO_SERVICES.trade.ensureNormalizedShape(DB.normalized||{});
+  const batch=normalized.importBatches.find(b=>b.id===batchId);
+  if(!batch){if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='Batch not found.';}return;}
+
+  const year=String(batch.targetYear||'');
+  const expectedPhrase=`APPROVE ${year} EXCEL ANNUAL`;
+  if(confirmVal!==expectedPhrase){
+    if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent=`اكتب: ${expectedPhrase}`;}
+    return;
+  }
+
+  const ruleId='xlsx-annual-summary-v1';
+  if(batch.ruleApprovals?.[ruleId]?.status==='approved'){
+    if(statusEl){statusEl.style.color='var(--amber)';statusEl.textContent='Already approved.';}
+    return;
+  }
+
+  try{
+    const draftObs=normalized.draftObservations.filter(
+      o=>o.importBatchId===batchId&&o.observationDataset==='annual-commodity'
+    );
+    if(!draftObs.length){
+      if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='No annual-commodity draft observations found.';}
+      return;
+    }
+
+    const now=new Date().toISOString();
+
+    // Publish annual observations
+    const existingObsIds=new Set(normalized.observations.map(o=>o.id));
+    draftObs.forEach(o=>{
+      if(!existingObsIds.has(o.id)){
+        normalized.observations.push({...o,reviewStatus:'approved',isPublished:true,approvedAt:now,approvedLayer:'annual'});
+      }
+    });
+
+    // Remove from draftObservations
+    normalized.draftObservations=normalized.draftObservations.filter(
+      o=>!(o.importBatchId===batchId&&o.observationDataset==='annual-commodity')
+    );
+
+    // Record rule approval on batch
+    batch.ruleApprovals=batch.ruleApprovals||{};
+    batch.ruleApprovals[ruleId]={status:'approved',approvedAt:now,observationCount:draftObs.length};
+    batch.status='partially-approved';
+    normalized.activeYearRuleBatches=normalized.activeYearRuleBatches||{};
+    normalized.activeYearRuleBatches[`${year}:${ruleId}`]=batchId;
+
+    DB.normalized=normalized;
+    saveDB();DB=loadDB();
+    teInit();teRun();
+
+    if(statusEl){statusEl.style.color='var(--exp)';statusEl.textContent=`✅ Approved ${draftObs.length} annual observations for ${year}.`;}
+    _teXlsxSetStatus(`✅ Annual layer approved — ${draftObs.length} observations published for ${year}`,'var(--exp)');
+    teXlsxDraftReviewRender(batchId);
+
+  }catch(err){
+    if(statusEl){statusEl.style.color='var(--imp)';statusEl.textContent='❌ '+err.message;}
   }
 }
 function teDL(){if(TE_LAST_EXPORT){dlCSV(TE_LAST_EXPORT.rows,TE_LAST_EXPORT.fn);return;}const isExp=TS.type==='exp';let rows=[],fn='trade';
