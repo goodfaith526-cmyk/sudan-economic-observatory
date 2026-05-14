@@ -168,6 +168,7 @@ let ruleApprovalMigrationResult=migrate2013RuleApprovalRegistry();
 // ══ NAV ══
 let isAdmin=false;
 function nav(pg){
+  if(pg==='trade'){window.location.href='trade.html';return;}
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nt').forEach(n=>n.classList.remove('on'));
   document.getElementById('pg-'+pg).classList.add('on');
