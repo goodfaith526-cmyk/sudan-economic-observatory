@@ -212,25 +212,57 @@ let TCHART=null,tLL=[],tLD=[],tLD2=[],TE_LAST_EXPORT=null;
 function teInit(){
   const sc=document.getElementById('s-com');
   const yrMode=document.getElementById('s-year-mode')?.value||'single';
-  const yr=TS.yr==='annual'?'2025':TS.yr;
-  const yrD=DB.years[yr]||DB.years['2025'];
-  const yearPool=yrMode==='single'?[yrD]:Object.keys(DB.years).map(y=>DB.years[y]);
-  const allC=[...new Map(yearPool.flatMap(y=>[...(y.exp_com||[]),...(y.imp_com||[])]).map(x=>[x.n,x])).values()];
+
+  // Collect years from both legacy DB.years and normalized approved observations
+  const legacyYrs=Object.keys(DB.years);
+  const normObs=(DB.normalized?.observations||[]).filter(o=>o.isPublished);
+  const normYrs=[...new Set(normObs.map(o=>String(o.year)))];
+  const allYrs=[...new Set([...legacyYrs,...normYrs])].sort((a,b)=>Number(b)-Number(a));
+
+  const yr=TS.yr==='annual'?(allYrs[0]||'2025'):TS.yr;
+  const yrD=DB.years[yr]||null;
+  const yearPool=yrMode==='single'?(yrD?[yrD]:[]):allYrs.map(y=>DB.years[y]).filter(Boolean);
+
+  // Flow filter: exp→export, imp→import, bal→show all
+  const flowFilter=TS.type==='exp'?'export':TS.type==='imp'?'import':null;
+
+  // Normalized observations scoped to current year selection
+  const normYrObs=yrMode==='single'
+    ? normObs.filter(o=>String(o.year)===yr)
+    : normObs;
+
+  // Commodity list: legacy + normalized, filtered by flow
+  const legacyExpCom=yearPool.flatMap(y=>y.exp_com||[]);
+  const legacyImpCom=yearPool.flatMap(y=>y.imp_com||[]);
+  const legacyComs=flowFilter==='export'?legacyExpCom:flowFilter==='import'?legacyImpCom:[...legacyExpCom,...legacyImpCom];
+  const normComs=normYrObs
+    .filter(o=>o.commodityName&&(!flowFilter||o.flow===flowFilter))
+    .map(o=>({n:o.commodityName}));
+  const allC=[...new Map([...legacyComs,...normComs].map(x=>[x.n,x])).values()];
   sc.innerHTML='<option value="all">— كل السلع —</option>';
   allC.forEach(c=>sc.innerHTML+=`<option value="${c.n}">${c.n}</option>`);
+
+  // Country list: legacy + normalized, filtered by flow
+  const legacyExpCtr=yearPool.flatMap(y=>y.exp_ctr||[]);
+  const legacyImpCtr=yearPool.flatMap(y=>y.imp_ctr||[]);
+  const legacyCtrs=flowFilter==='export'?legacyExpCtr:flowFilter==='import'?legacyImpCtr:[...legacyExpCtr,...legacyImpCtr];
+  const normCtrs=normYrObs
+    .filter(o=>o.countryName&&(!flowFilter||o.flow===flowFilter))
+    .map(o=>({n:o.countryName}));
+  const allCtrs=[...new Map([...legacyCtrs,...normCtrs].map(x=>[x.n,x])).values()].sort((a,b)=>a.n.localeCompare(b.n,'ar'));
   const sct=document.getElementById('s-ctr');
-  const allCtrs=[...new Map(yearPool.flatMap(y=>[...(y.exp_ctr||[]),...(y.imp_ctr||[])]).map(x=>[x.n,x])).values()].sort((a,b)=>a.n.localeCompare(b.n,'ar'));
   sct.innerHTML='<option value="all">— كل الدول —</option>';
   allCtrs.forEach(c=>sct.innerHTML+=`<option value="${c.n}">${c.n}</option>`);
-  // Year select
-  const yrs=Object.keys(DB.years).sort((a,b)=>b-a);
-  document.getElementById('s-yr').innerHTML=yrs.map(y=>`<option value="${y}">${y}</option>`).join('')+'<option value="annual">2015–2025 سنوي</option>';
-  const ascYears=yrs.slice().sort((a,b)=>a-b);
-  const rangeOpts=ascYears.map(y=>`<option value="${y}">${y}</option>`).join('');
+
+  // Year dropdown: all years from legacy + normalized
+  const prevYr=document.getElementById('s-yr')?.value;
+  document.getElementById('s-yr').innerHTML=allYrs.map(y=>`<option value="${y}"${y===prevYr?' selected':''}>${y}</option>`).join('')+'<option value="annual"'+(prevYr==='annual'?' selected':'')+'>سنوي</option>';
+  const ascYrs=allYrs.slice().sort((a,b)=>Number(a)-Number(b));
+  const rangeOpts=ascYrs.map(y=>`<option value="${y}">${y}</option>`).join('');
   const fromSel=document.getElementById('s-from-yr'),toSel=document.getElementById('s-to-yr');
   const fromCur=fromSel?.value,toCur=toSel?.value;
-  if(fromSel){fromSel.innerHTML=rangeOpts;fromSel.value=ascYears.includes(fromCur)?fromCur:(ascYears[0]||'2024');}
-  if(toSel){toSel.innerHTML=rangeOpts;toSel.value=ascYears.includes(toCur)?toCur:(ascYears[ascYears.length-1]||'2025');}
+  if(fromSel){fromSel.innerHTML=rangeOpts;fromSel.value=ascYrs.includes(fromCur)?fromCur:(ascYrs[0]||'2024');}
+  if(toSel){toSel.innerHTML=rangeOpts;toSel.value=ascYrs.includes(toCur)?toCur:(ascYrs[ascYrs.length-1]||'2025');}
   teUpdateYearModeUI();
   teUpdateDB();
 }
@@ -253,11 +285,15 @@ function teUpdateYearModeUI(){
   if(mWrap) mWrap.style.display=mode==='single'&&period==='monthly'?'':'none';
 }
 function teUpdateDB(){
-  const yrs=Object.keys(DB.years);
-  document.getElementById('te-years-count').textContent=yrs.length;
-  document.getElementById('te-records').textContent=yrs.reduce((s,y)=>s+(DB.years[y].exp_com?.length||0)+(DB.years[y].imp_com?.length||0)+(DB.years[y].exp_ctr?.length||0)+(DB.years[y].imp_ctr?.length||0)+24,0);
+  const legacyYrs=Object.keys(DB.years);
+  const normObs=(DB.normalized?.observations||[]).filter(o=>o.isPublished);
+  const normYrs=[...new Set(normObs.map(o=>String(o.year)))];
+  const allYrs=[...new Set([...legacyYrs,...normYrs])].sort((a,b)=>Number(a)-Number(b));
+  document.getElementById('te-years-count').textContent=allYrs.length;
+  const legacyRec=legacyYrs.reduce((s,y)=>s+(DB.years[y].exp_com?.length||0)+(DB.years[y].imp_com?.length||0)+(DB.years[y].exp_ctr?.length||0)+(DB.years[y].imp_ctr?.length||0)+24,0);
+  document.getElementById('te-records').textContent=legacyRec+normObs.length;
   document.getElementById('te-last-update').textContent=DB.sources.slice(-1)[0]?.added?.slice(0,7)||'—';
-  document.getElementById('te-year-chips').innerHTML=yrs.map(y=>`<span class="ychip on">${y}</span>`).join('');
+  document.getElementById('te-year-chips').innerHTML=allYrs.map(y=>`<span class="ychip on">${y}</span>`).join('');
   tePdfDebugLoadLatest();
 }
 function setT(t,btn){
@@ -266,6 +302,7 @@ function setT(t,btn){
   btn.className='on-'+t[0];
   TS.yr=document.getElementById('s-yr')?.value||'2025';
   TS.per=document.getElementById('s-per')?.value||'monthly';
+  teInit(); // rebuild commodity/country lists filtered by new flow
   teRun();
 }
 function setV(v,btn){
@@ -307,7 +344,7 @@ function teBuildQuery(selC,selCtr){
 }
 function teShouldUseNormalized(q){
   if(q.yearMode!=='single') return true;
-  return q.periodMode==='annual'||q.periodMode==='monthly';
+  return q.periodMode==='annual'||q.periodMode==='monthly'||q.periodMode==='quarterly';
 }
 function teRenderQueryResult(result,isExp){
   if(!result) return false;
