@@ -4,163 +4,227 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مستكشف التجارة الخارجية — المرصد الاقتصادي السوداني</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root{
-  --navy:#1b3a6b; --navy2:#2952a3; --exp:#0a7c4e; --imp:#b91c1c; --bal:#1d4ed8;
-  --gold:#b5640a; --bg:#f0f4f9; --bg2:#fff; --bg3:#eef1f6; --border:#d1dae8;
-  --t1:#111827; --t2:#374151; --t3:#6b7280;
+  --navy:#1b3a6b;--navy2:#2952a3;--navy3:#dce6f7;
+  --exp:#0a7c4e;--exp2:#ecfdf5;
+  --imp:#b91c1c;--imp2:#fef2f2;
+  --bal:#1d4ed8;--bal2:#eff6ff;
+  --gold:#b5640a;--gold2:#fffbeb;
+  --bg:#f0f4f9;--bg2:#fff;--bg3:#eef1f6;--bg4:#e5ecf6;
+  --border:#d1dae8;--border2:#b8c5d8;
+  --t1:#111827;--t2:#374151;--t3:#6b7280;--t4:#9ca3af;
+  --sh:0 1px 4px rgba(27,58,107,.08);--sh2:0 4px 20px rgba(27,58,107,.12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6}
-button{font-family:inherit;cursor:pointer}
-select,input{font-family:inherit;font-size:13px}
-a{color:inherit}
+html,body{height:100%}
+body{font-family:'IBM Plex Sans Arabic',Tahoma,sans-serif;background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6;direction:rtl}
+button,select,input,textarea{font-family:inherit}
+button{cursor:pointer}
+*::-webkit-scrollbar{width:5px;height:5px}
+*::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* Header */
-.hdr{position:sticky;top:0;z-index:100;background:var(--navy);color:#fff;display:flex;align-items:center;
-  justify-content:space-between;padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.hdr-l{display:flex;align-items:center;gap:14px}
-.logo{display:flex;align-items:center;gap:9px;cursor:pointer;font-weight:800;font-size:16px}
-.logo-ic{width:34px;height:34px;background:linear-gradient(135deg,var(--navy2),var(--gold));border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:18px}
-.crumb{font-size:12px;color:#b9c8e0;display:flex;align-items:center;gap:6px}
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:200;background:linear-gradient(135deg,#152d5a,var(--navy));
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:60px;
+  box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hdr-l{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;color:#fff}
+.logo-ic{width:36px;height:36px;background:linear-gradient(135deg,var(--navy2),var(--gold));
+  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;
+  box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.logo-txt{font-size:15px;font-weight:800;color:#fff;line-height:1.2}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase}
+.sep{width:1px;height:26px;background:rgba(255,255,255,.15)}
+.crumb{font-size:12px;color:rgba(255,255,255,.5)}
 .crumb b{color:#fff;font-weight:600}
-.admin-btn{background:var(--gold);color:#fff;border:none;padding:8px 16px;border-radius:7px;font-weight:600;font-size:13px}
-.admin-btn:hover{filter:brightness(1.1)}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.hdr-badge{font-size:10px;color:rgba(255,255,255,.4);background:rgba(255,255,255,.07);
+  padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.1)}
+.admin-btn{background:var(--gold);color:#fff;border:none;padding:7px 16px;border-radius:7px;
+  font-weight:700;font-size:12px;letter-spacing:.02em;transition:.15s}
+.admin-btn:hover{filter:brightness(1.12)}
 
-/* Layout */
-.wrap{max-width:1500px;margin:0 auto;padding:18px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
-.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:4px solid var(--navy2)}
-.kpi.exp{border-top-color:var(--exp)} .kpi.imp{border-top-color:var(--imp)}
-.kpi.bal{border-top-color:var(--bal)} .kpi.yoy{border-top-color:var(--gold)}
-.kpi-lbl{font-size:12px;color:var(--t3);font-weight:500;margin-bottom:4px}
-.kpi-val{font-size:24px;font-weight:800;color:var(--t1)}
-.kpi-val.neg{color:var(--imp)} .kpi-val.pos{color:var(--exp)}
-.kpi-sub{font-size:11px;color:var(--t3);margin-top:3px}
+/* ── LAYOUT ── */
+.page{max-width:1500px;margin:0 auto;padding:20px}
 
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;
+  border-top:4px solid var(--navy2);box-shadow:var(--sh);transition:.2s}
+.kpi.kpi-exp{border-top-color:var(--exp)}
+.kpi.kpi-imp{border-top-color:var(--imp)}
+.kpi.kpi-bal{border-top-color:var(--bal)}
+.kpi.kpi-yoy{border-top-color:var(--gold)}
+.kpi-lbl{font-size:11px;color:var(--t3);font-weight:600;letter-spacing:.03em;margin-bottom:5px;text-transform:uppercase}
+.kpi-val{font-size:26px;font-weight:800;color:var(--t1);line-height:1}
+.kpi-val.pos{color:var(--exp)} .kpi-val.neg{color:var(--imp)}
+.kpi-sub{font-size:11px;color:var(--t4);margin-top:4px}
+
+/* Two-column */
 .cols{display:flex;gap:16px;align-items:flex-start}
-.sidebar{width:280px;flex-shrink:0;position:sticky;top:74px}
+.sidebar{width:276px;flex-shrink:0;position:sticky;top:78px;max-height:calc(100vh - 100px);overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}
 .main{flex:1;min-width:0}
 
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:16px}
-.card-pad{padding:16px}
-.sb-sec{padding:13px 15px;border-bottom:1px solid var(--bg3)}
-.sb-sec:last-child{border-bottom:none}
-.sb-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+/* Sidebar card */
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--sh);overflow:hidden;margin-bottom:0}
+.ssec{padding:13px 14px;border-bottom:1px solid var(--bg3)}
+.ssec:last-child{border-bottom:none}
+.ssec-title{font-size:10px;font-weight:700;color:var(--t4);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:9px;display:flex;align-items:center;gap:5px}
+.ssec-title::before{content:'';display:block;width:3px;height:11px;background:var(--navy);border-radius:2px}
 
-/* Segmented control */
-.seg{display:flex;background:var(--bg3);border-radius:8px;padding:3px;gap:2px}
-.seg button{flex:1;border:none;background:transparent;padding:7px 4px;border-radius:6px;font-size:12px;
-  font-weight:600;color:var(--t2);transition:.12s}
-.seg button.on{background:var(--bg2);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+/* Segmented */
+.seg{display:flex;background:var(--bg3);border-radius:7px;padding:3px;gap:2px}
+.seg button{flex:1;border:none;background:transparent;padding:7px 3px;border-radius:5px;
+  font-size:11px;font-weight:600;color:var(--t3);transition:.12s;white-space:nowrap}
+.seg button.on{background:var(--bg2);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.seg button.on-exp{background:var(--exp2);color:var(--exp)}
+.seg button.on-imp{background:var(--imp2);color:var(--imp)}
+.seg button.on-bal{background:var(--bal2);color:var(--bal)}
 
-.fld{margin-bottom:9px}
+/* Filter fields */
+.fld{margin-bottom:8px}
 .fld:last-child{margin-bottom:0}
-.fld label{display:block;font-size:11px;color:var(--t3);font-weight:600;margin-bottom:3px}
-.fld select,.fld input{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--t1)}
-.fld select:disabled{background:var(--bg3);color:var(--t3);cursor:not-allowed}
-.row2{display:flex;gap:8px}
-.row2 .fld{flex:1}
+.fld label{display:block;font-size:10px;color:var(--t3);font-weight:600;margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.fld select,.fld input[type=text],.fld input[type=number]{
+  width:100%;padding:6px 9px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg2);color:var(--t1);font-size:12px;transition:.12s}
+.fld select:focus,.fld input:focus{outline:none;border-color:var(--navy2);box-shadow:0 0 0 2px rgba(41,82,163,.12)}
+.fld select:disabled{background:var(--bg3);color:var(--t4);cursor:not-allowed}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 
-.presets{display:flex;flex-direction:column;gap:6px}
-.presets button{text-align:right;border:1px solid var(--border);background:var(--bg2);padding:7px 10px;
-  border-radius:6px;font-size:12px;font-weight:500;color:var(--t2)}
-.presets button:hover{border-color:var(--navy2);color:var(--navy);background:var(--bg3)}
+/* Presets */
+.presets{display:flex;flex-direction:column;gap:5px}
+.preset-btn{border:1px solid var(--border);background:var(--bg2);padding:7px 10px;
+  border-radius:7px;font-size:11.5px;font-weight:500;color:var(--t2);text-align:right;
+  transition:.12s;display:flex;align-items:center;gap:6px}
+.preset-btn:hover{border-color:var(--navy2);color:var(--navy);background:var(--navy3)}
 
 /* DB section */
-.db-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.db-head .arr{font-size:10px;color:var(--t3)}
-.db-body{margin-top:10px}
-.db-body.hidden{display:none}
-.db-stats{display:flex;gap:6px;margin-bottom:9px}
-.db-stat{flex:1;background:var(--bg3);border-radius:6px;padding:6px;text-align:center}
-.db-stat b{display:block;font-size:15px;color:var(--navy);font-weight:800}
-.db-stat span{font-size:9px;color:var(--t3)}
-.year-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px}
-.ychip{border:1px solid var(--border);background:var(--bg2);padding:3px 7px;border-radius:5px;font-size:11px;font-weight:600;color:var(--t2)}
+.db-stat-row{display:flex;gap:6px;margin-bottom:8px}
+.db-stat{flex:1;background:var(--bg3);border-radius:7px;padding:7px;text-align:center}
+.db-stat b{display:block;font-size:16px;color:var(--navy);font-weight:800}
+.db-stat span{font-size:9px;color:var(--t4);text-transform:uppercase;letter-spacing:.04em}
+.ychips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ychip{border:1px solid var(--border);background:var(--bg2);padding:3px 9px;border-radius:5px;
+  font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:.12s}
+.ychip:hover{border-color:var(--navy2);color:var(--navy)}
 .ychip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
-.db-btns{display:flex;flex-direction:column;gap:5px}
-.btn{border:1px solid var(--border);background:var(--bg2);padding:7px;border-radius:6px;font-size:12px;font-weight:600;color:var(--t2)}
+.mini-btn{border:1px solid var(--border);background:var(--bg2);padding:6px 10px;border-radius:6px;
+  font-size:11px;font-weight:600;color:var(--t2);width:100%;margin-bottom:5px;text-align:center;transition:.12s}
+.mini-btn:hover{background:var(--bg3);border-color:var(--border2)}
+.mini-btn:last-child{margin-bottom:0}
+
+/* ── MAIN CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--bg3);display:flex;
+  align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.card-title{font-size:15px;font-weight:700;color:var(--navy);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-sub{font-size:11px;color:var(--t4);margin-top:1px}
+
+/* View toggle */
+.vtog{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:8px}
+.vtog button{border:none;background:transparent;padding:6px 12px;border-radius:6px;
+  font-size:11.5px;font-weight:600;color:var(--t3);transition:.12s}
+.vtog button.on{background:var(--bg2);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* Chart */
+.chart-wrap{padding:18px;min-height:360px;position:relative}
+.chart-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--t4);font-size:14px;gap:8px}
+.chart-empty .icon{font-size:40px;opacity:.3}
+.warn-bar{margin:0 16px 12px;padding:10px 14px;background:var(--gold2);border:1px solid rgba(180,83,9,.2);
+  border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px}
+.layer-lbl{padding:4px 18px 12px;font-size:11px;color:var(--t4);text-align:center}
+.src-lbl{padding:10px 18px;font-size:11px;color:var(--t4);border-top:1px solid var(--bg3);text-align:center}
+
+/* Table */
+.tbl-hdr{padding:12px 18px;display:flex;align-items:center;justify-content:space-between}
+.tbl-hdr h3{font-size:13px;font-weight:700;color:var(--navy)}
+.tbl-scroll{max-height:560px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--bg3);color:var(--t2);padding:9px 14px;
+  text-align:right;font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;
+  border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{background:var(--bg4)}
+thead th .si{font-size:9px;color:var(--navy2);margin-right:3px}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--bg3);color:var(--t2);vertical-align:middle}
+tbody tr:hover td{background:#f5f8fd}
+.rk{color:var(--t4);font-size:10px;text-align:center;width:28px}
+.num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--t1);text-align:left;direction:ltr}
+.num.pos{color:var(--exp)} .num.neg{color:var(--imp)}
+.bar-wrap{display:flex;align-items:center;gap:8px}
+.bar-track{height:6px;background:var(--bg3);border-radius:3px;flex:1;max-width:100px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.bar-exp{background:var(--exp)} .bar-imp{background:var(--imp)} .bar-bal{background:var(--bal)}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:10px;font-weight:700}
+.empty{padding:50px;text-align:center;color:var(--t4);font-size:14px}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:1000;display:none;
+  align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;backdrop-filter:blur(2px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border-radius:14px;width:100%;max-width:700px;
+  box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between}
+.modal-hdr h2{font-size:17px;font-weight:700;color:var(--navy)}
+.modal-close{border:none;background:var(--bg3);width:32px;height:32px;border-radius:8px;
+  font-size:16px;color:var(--t2);display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--bg4)}
+.modal-body{padding:22px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tabs button{border:none;background:transparent;padding:9px 15px;font-size:12.5px;font-weight:600;
+  color:var(--t3);border-bottom:2px solid transparent;transition:.12s}
+.tabs button.on{color:var(--navy);border-bottom-color:var(--navy)}
+.tab-pane{display:none}.tab-pane.on{display:block}
+.hint{font-size:11.5px;color:var(--t3);margin-bottom:12px;line-height:1.65}
+.dz{border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;
+  color:var(--t3);background:var(--bg3);cursor:pointer;transition:.15s;font-size:13px}
+.dz:hover,.dz.over{border-color:var(--navy2);background:#e8f0fb;color:var(--navy)}
+.dz b{display:block;font-size:14px;margin-bottom:4px}
+.msg{padding:10px 14px;border-radius:8px;font-size:12.5px;font-weight:600;margin-top:10px}
+.msg.ok{background:#dcfce7;color:#166534} .msg.err{background:#fee2e2;color:#991b1b}
+.pvw{margin-top:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden;font-size:11px;max-height:200px;overflow-y:auto}
+.pvw table{font-size:11px}
+.pvw td,.pvw th{padding:5px 9px}
+.man-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.man-grid .fld{margin-bottom:0}
+.man-rows{margin-top:10px;border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto}
+.man-row{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;
+  border-bottom:1px solid var(--bg3);font-size:11.5px}
+.man-row:last-child{border:none}
+.del-btn{border:none;background:var(--imp2);color:var(--imp);width:22px;height:22px;
+  border-radius:5px;font-size:13px;display:flex;align-items:center;justify-content:center}
+.btn{padding:8px 16px;border-radius:7px;font-weight:600;font-size:12.5px;
+  border:1px solid var(--border);background:var(--bg2);color:var(--t2);cursor:pointer;transition:.12s}
 .btn:hover{background:var(--bg3)}
 .btn-navy{background:var(--navy);color:#fff;border-color:var(--navy)}
 .btn-navy:hover{background:var(--navy2)}
-.btn-gold{background:var(--gold);color:#fff;border-color:var(--gold)}
 .btn-danger{background:var(--imp);color:#fff;border-color:var(--imp)}
-.btn-sm{padding:5px 10px;font-size:11px}
-
-/* Chart card */
-.cc-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--bg3);flex-wrap:wrap;gap:8px}
-.cc-title{font-size:15px;font-weight:700;color:var(--navy)}
-.view-toggle{display:flex;gap:3px;background:var(--bg3);padding:3px;border-radius:7px}
-.view-toggle button{border:none;background:transparent;padding:6px 11px;border-radius:5px;font-size:12px;font-weight:600;color:var(--t2)}
-.view-toggle button.on{background:var(--bg2);color:var(--navy);box-shadow:0 1px 2px rgba(0,0,0,.1)}
-.chart-box{padding:16px;min-height:340px;position:relative}
-.chart-box canvas{max-height:420px}
-.layer-note{font-size:11px;color:var(--t3);padding:0 16px 6px;text-align:center}
-.src-note{font-size:11px;color:var(--t3);padding:0 16px 13px;text-align:center;border-top:1px solid var(--bg3);padding-top:10px}
-.warn-box{margin:12px 16px;padding:10px 13px;background:#fef3c7;border:1px solid #f59e0b;border-radius:7px;color:#92400e;font-size:12px;font-weight:600}
-
-/* Table */
-.tbl-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--bg3)}
-.tbl-head h3{font-size:14px;font-weight:700;color:var(--navy)}
-.tbl-scroll{max-height:520px;overflow-y:auto}
-table{width:100%;border-collapse:collapse}
-thead th{position:sticky;top:0;background:var(--bg3);font-size:11px;font-weight:700;color:var(--t2);
-  padding:9px 12px;text-align:right;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:2px solid var(--border)}
-thead th:hover{background:#e2e8f3}
-thead th .sort-ar{font-size:9px;color:var(--navy);margin-right:3px}
-tbody td{padding:8px 12px;font-size:12.5px;border-bottom:1px solid var(--bg3);color:var(--t2)}
-tbody tr:nth-child(even){background:#fafbfd}
-tbody tr:hover{background:#eef4fb}
-.num{font-variant-numeric:tabular-nums;font-weight:600;color:var(--t1)}
-.num.neg{color:var(--imp)} .num.pos{color:var(--exp)}
-.bar-cell{width:140px}
-.bar-track{background:var(--bg3);border-radius:4px;height:14px;overflow:hidden}
-.bar-fill{height:100%;border-radius:4px;background:var(--navy2)}
-.bar-fill.exp{background:var(--exp)} .bar-fill.imp{background:var(--imp)}
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
-.empty-state{padding:50px 20px;text-align:center;color:var(--t3);font-size:14px}
-
-/* Modal */
-.modal-bg{position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:1000;display:none;
-  align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
-.modal-bg.show{display:flex}
-.modal{background:var(--bg2);border-radius:12px;width:100%;max-width:680px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
-.modal-head h2{font-size:17px;color:var(--navy)}
-.modal-x{border:none;background:var(--bg3);width:30px;height:30px;border-radius:7px;font-size:16px;color:var(--t2)}
-.modal-body{padding:20px}
-.login-box{display:flex;flex-direction:column;gap:12px}
-.login-box input{padding:10px;border:1px solid var(--border);border-radius:7px}
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}
-.tabs button{border:none;background:transparent;padding:9px 13px;font-size:12.5px;font-weight:600;
-  color:var(--t3);border-bottom:2px solid transparent}
-.tabs button.on{color:var(--navy);border-bottom-color:var(--navy)}
-.tab-pane{display:none} .tab-pane.on{display:block}
-.drop-zone{border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;color:var(--t3);
-  background:var(--bg3);transition:.15s}
-.drop-zone.over{border-color:var(--navy2);background:#e8eef8;color:var(--navy)}
-.preview-tbl{margin-top:12px;font-size:11px;max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:7px}
-.preview-tbl table{font-size:11px}
-.preview-tbl td,.preview-tbl th{padding:5px 8px}
-.man-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.man-grid .fld{margin-bottom:0}
-.msg{padding:9px 12px;border-radius:7px;font-size:12px;font-weight:600;margin-top:10px}
-.msg.ok{background:#dcfce7;color:#166534} .msg.err{background:#fee2e2;color:#991b1b}
-.hint{font-size:11px;color:var(--t3);margin:6px 0 10px;line-height:1.5}
-.man-list{margin-top:10px;font-size:11.5px;max-height:160px;overflow:auto;border:1px solid var(--border);border-radius:7px;padding:6px}
-.man-list-item{display:flex;justify-content:space-between;padding:4px 6px;border-bottom:1px solid var(--bg3)}
-.man-list-item:last-child{border:none}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.login-box{display:flex;flex-direction:column;gap:12px;max-width:360px;margin:0 auto}
+.login-box input{padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.phrase-input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:7px;
+  font-size:13px;margin-bottom:8px}
 
 @media(max-width:980px){
   .kpis{grid-template-columns:repeat(2,1fr)}
   .cols{flex-direction:column}
-  .sidebar{width:100%;position:static}
+  .sidebar{width:100%;position:static;max-height:none}
   .man-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi-val{font-size:20px}
 }
 </style>
 </head>
@@ -168,243 +232,273 @@ tbody tr:hover{background:#eef4fb}
 
 <header class="hdr">
   <div class="hdr-l">
-    <div class="logo" onclick="location.href='index.html'">
+    <a class="logo" href="index.html">
       <div class="logo-ic">📊</div>
-      <div>المرصد الاقتصادي السوداني</div>
-    </div>
-    <div class="crumb"><span>الرئيسية</span> ‹ <b>مستكشف التجارة الخارجية</b></div>
+      <div><div class="logo-txt">المرصد الاقتصادي السوداني</div><div class="logo-sub">Sudan Economic Observatory</div></div>
+    </a>
+    <div class="sep"></div>
+    <div class="crumb"><b>مستكشف التجارة الخارجية</b></div>
   </div>
-  <button class="admin-btn" onclick="openAdmin()">⚙ الإدارة</button>
+  <div class="hdr-r">
+    <div class="hdr-badge">🇸🇩 CBOS</div>
+    <button class="admin-btn" onclick="openAdmin()">⚙ الإدارة</button>
+  </div>
 </header>
 
-<div class="wrap">
-  <!-- KPI strip -->
+<div class="page">
+
+  <!-- KPIs -->
   <div class="kpis" id="kpis"></div>
 
   <div class="cols">
-    <!-- Sidebar -->
+
+    <!-- ── SIDEBAR ── -->
     <aside class="sidebar">
-      <div class="card">
-        <div class="sb-sec">
-          <div class="sb-title">التدفق</div>
+      <div class="scard">
+
+        <div class="ssec">
+          <div class="ssec-title">نوع البيانات</div>
           <div class="seg" id="seg-flow">
-            <button data-v="export" class="on">📤 صادرات</button>
+            <button data-v="export" class="on-exp">📤 صادرات</button>
             <button data-v="import">📥 واردات</button>
             <button data-v="balance">⚖ الميزان</button>
           </div>
         </div>
-        <div class="sb-sec">
-          <div class="sb-title">العرض حسب</div>
+
+        <div class="ssec">
+          <div class="ssec-title">عرض حسب</div>
           <div class="seg" id="seg-view">
             <button data-v="commodity" class="on">📦 السلعة</button>
             <button data-v="country">🌍 الدولة</button>
             <button data-v="time">📅 الزمن</button>
           </div>
         </div>
-        <div class="sb-sec">
-          <div class="sb-title">الفترة الزمنية</div>
+
+        <div class="ssec">
+          <div class="ssec-title">نطاق السنوات</div>
           <div class="fld">
-            <label>نمط السنوات</label>
-            <select id="f-yearMode">
+            <label>وضع السنة</label>
+            <select id="f-ym">
               <option value="single">سنة واحدة</option>
               <option value="range">مدى سنوات</option>
               <option value="all">كل السنوات</option>
             </select>
           </div>
-          <div class="fld" id="wrap-year">
+          <div class="fld" id="wrap-yr">
             <label>السنة</label>
-            <select id="f-year"></select>
+            <select id="f-yr"></select>
           </div>
-          <div class="row2" id="wrap-range" style="display:none">
-            <div class="fld"><label>من</label><select id="f-fromYear"></select></div>
-            <div class="fld"><label>إلى</label><select id="f-toYear"></select></div>
+          <div class="row2" id="wrap-rng" style="display:none">
+            <div class="fld"><label>من</label><select id="f-from"></select></div>
+            <div class="fld"><label>إلى</label><select id="f-to"></select></div>
           </div>
+        </div>
+
+        <div class="ssec">
+          <div class="ssec-title">الفترة والتفاصيل</div>
           <div class="fld">
             <label>الدورية</label>
-            <select id="f-periodMode">
+            <select id="f-per">
               <option value="annual">سنوي</option>
               <option value="monthly">شهري</option>
               <option value="quarterly">ربع سنوي</option>
             </select>
           </div>
-          <div class="fld" id="wrap-month" style="display:none">
-            <label>الشهر</label><select id="f-month"></select>
+          <div class="fld" id="wrap-mo" style="display:none">
+            <label>الشهر</label>
+            <select id="f-mo">
+              <option value="all">كل الشهور</option>
+              <option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option>
+              <option value="4">أبريل</option><option value="5">مايو</option><option value="6">يونيو</option>
+              <option value="7">يوليو</option><option value="8">أغسطس</option><option value="9">سبتمبر</option>
+              <option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+            </select>
           </div>
-          <div class="fld" id="wrap-quarter" style="display:none">
-            <label>الربع</label><select id="f-quarter"></select>
-          </div>
-        </div>
-        <div class="sb-sec">
-          <div class="sb-title">مرشحات</div>
-          <div class="fld"><label>السلعة</label><select id="f-commodity"></select></div>
-          <div class="fld"><label>الدولة</label><select id="f-country"></select></div>
-          <div class="fld"><label>المنطقة</label>
-            <select id="f-region">
-              <option value="all">كل المناطق</option>
-              <option value="عربي">عربي</option>
-              <option value="آسيا">آسيا</option>
-              <option value="إفريقيا">إفريقيا</option>
-              <option value="أوروبا">أوروبا</option>
-              <option value="صناعي">صناعي</option>
+          <div class="fld" id="wrap-qr" style="display:none">
+            <label>الربع</label>
+            <select id="f-qr">
+              <option value="all">كل الأرباع</option>
+              <option value="1">Q1 يناير–مارس</option>
+              <option value="2">Q2 أبريل–يونيو</option>
+              <option value="3">Q3 يوليو–سبتمبر</option>
+              <option value="4">Q4 أكتوبر–ديسمبر</option>
             </select>
           </div>
         </div>
-        <div class="sb-sec">
-          <div class="sb-title">اختصارات سريعة</div>
+
+        <div class="ssec">
+          <div class="ssec-title">مرشحات</div>
+          <div class="fld"><label>السلعة</label><select id="f-com"></select></div>
+          <div class="fld"><label>الدولة</label><select id="f-ctr"></select></div>
+          <div class="fld">
+            <label>المنطقة</label>
+            <select id="f-rgn">
+              <option value="all">كل المناطق</option>
+              <option value="عربي">🟦 عربي</option>
+              <option value="آسيا">🟨 آسيا</option>
+              <option value="إفريقيا">🟩 إفريقيا</option>
+              <option value="أوروبا">🟪 أوروبا</option>
+              <option value="صناعي">🟦 صناعي</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ssec">
+          <div class="ssec-title">اختصارات سريعة</div>
           <div class="presets">
-            <button data-p="topExp">أكبر 10 صادرات</button>
-            <button data-p="topImp">أكبر 10 واردات</button>
-            <button data-p="expDest">أهم وجهات التصدير</button>
-            <button data-p="impSrc">أهم مصادر الاستيراد</button>
-            <button data-p="balance">الميزان 2015–2025</button>
-            <button data-p="compare">مقارنة السنتين</button>
+            <button class="preset-btn" data-p="topExp">📤 أكبر 10 صادرات (2025)</button>
+            <button class="preset-btn" data-p="topImp">📥 أكبر 10 واردات (2025)</button>
+            <button class="preset-btn" data-p="expDest">🌍 أهم وجهات التصدير</button>
+            <button class="preset-btn" data-p="impSrc">🌍 أهم مصادر الاستيراد</button>
+            <button class="preset-btn" data-p="balance">⚖ الميزان 2015–2025</button>
+            <button class="preset-btn" data-p="monthlyExp">📅 صادرات 2025 شهرياً</button>
           </div>
         </div>
-        <div class="sb-sec">
-          <div class="db-head" onclick="toggleDB()">
-            <div class="sb-title" style="margin:0">قاعدة البيانات</div>
-            <span class="arr" id="db-arr">▼</span>
+
+        <div class="ssec">
+          <div class="ssec-title">قاعدة البيانات</div>
+          <div class="db-stat-row">
+            <div class="db-stat"><b id="db-yrs">0</b><span>سنوات</span></div>
+            <div class="db-stat"><b id="db-rec">0</b><span>سجل</span></div>
+            <div class="db-stat"><b id="db-upd">—</b><span>آخر تحديث</span></div>
           </div>
-          <div class="db-body" id="db-body">
-            <div class="db-stats">
-              <div class="db-stat"><b id="db-years">0</b><span>سنوات</span></div>
-              <div class="db-stat"><b id="db-records">0</b><span>سجل</span></div>
-            </div>
-            <div class="hint" id="db-update">آخر تحديث: —</div>
-            <div class="year-chips" id="year-chips"></div>
-            <div class="db-btns">
-              <button class="btn" onclick="exportCSV()">⬇ تصدير CSV</button>
-              <button class="btn" onclick="exportJSON()">⬇ تصدير JSON</button>
-            </div>
-          </div>
+          <div class="ychips" id="ychips"></div>
+          <button class="mini-btn" onclick="doExportCSV()">⬇ تصدير CSV</button>
+          <button class="mini-btn" onclick="doExportJSON()">⬇ تصدير JSON</button>
         </div>
+
       </div>
     </aside>
 
-    <!-- Main -->
+    <!-- ── MAIN ── -->
     <main class="main">
+
+      <!-- Chart card -->
       <div class="card">
-        <div class="cc-head">
-          <div class="cc-title" id="cc-title">—</div>
-          <div class="view-toggle" id="view-toggle">
-            <button data-v="table">📋 جدول</button>
+        <div class="card-hdr">
+          <div>
+            <div class="card-title" id="cc-title">—</div>
+            <div class="card-sub" id="cc-sub"></div>
+          </div>
+          <div class="vtog" id="vtog">
             <button data-v="bar" class="on">▊ أعمدة</button>
             <button data-v="line">╱ خطي</button>
             <button data-v="pie">◍ دائري</button>
+            <button data-v="table">📋 جدول</button>
           </div>
         </div>
         <div id="warn-slot"></div>
-        <div class="chart-box"><canvas id="chart"></canvas></div>
-        <div class="layer-note" id="layer-note"></div>
-        <div class="src-note">المصدر: بنك السودان المركزي — موجز إحصاءات التجارة الخارجية · المرصد الاقتصادي السوداني</div>
+        <div class="chart-wrap" id="chart-wrap">
+          <canvas id="chart"></canvas>
+          <div class="chart-empty" id="chart-empty" style="display:none">
+            <div class="icon">📊</div>
+            <div>لا توجد بيانات مطابقة</div>
+          </div>
+        </div>
+        <div class="layer-lbl" id="layer-lbl"></div>
+        <div class="src-lbl">المصدر: بنك السودان المركزي (CBOS) — موجز إحصاءات التجارة الخارجية | المرصد الاقتصادي السوداني</div>
       </div>
 
-      <div class="card" id="table-card">
-        <div class="tbl-head">
-          <h3>جدول البيانات</h3>
-          <button class="btn btn-sm" onclick="toggleTable()" id="tbl-toggle-btn">إخفاء الجدول</button>
+      <!-- Table card -->
+      <div class="card" id="tbl-card">
+        <div class="tbl-hdr">
+          <h3 id="tbl-title">جدول البيانات</h3>
+          <button class="btn btn-sm" id="tbl-tog-btn" onclick="toggleTable()">إخفاء</button>
         </div>
-        <div class="tbl-scroll" id="tbl-scroll"></div>
+        <div class="tbl-scroll" id="tbl-body"></div>
       </div>
+
     </main>
   </div>
 </div>
 
-<!-- Admin Modal -->
+<!-- ── ADMIN MODAL ── -->
 <div class="modal-bg" id="admin-modal">
   <div class="modal">
-    <div class="modal-head">
+    <div class="modal-hdr">
       <h2>⚙ لوحة الإدارة</h2>
-      <button class="modal-x" onclick="closeAdmin()">✕</button>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
     </div>
     <div class="modal-body">
-      <div id="login-view">
+
+      <div id="v-login">
         <div class="login-box">
-          <p class="hint">أدخل كلمة مرور المسؤول للوصول إلى أدوات إدارة قاعدة البيانات.</p>
-          <input type="password" id="admin-pass" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+          <p class="hint">أدخل كلمة المرور للوصول إلى أدوات إدارة قاعدة البيانات.</p>
+          <input type="password" id="ap" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
           <button class="btn btn-navy" onclick="doLogin()">دخول</button>
-          <div id="login-msg"></div>
+          <div id="lmsg"></div>
         </div>
       </div>
-      <div id="admin-view" style="display:none">
-        <div class="tabs" id="admin-tabs">
-          <button data-t="csv" class="on">رفع بيانات CSV</button>
-          <button data-t="json">استيراد JSON</button>
-          <button data-t="manual">إدخال يدوي</button>
-          <button data-t="manage">إدارة القاعدة</button>
+
+      <div id="v-admin" style="display:none">
+        <div class="tabs">
+          <button data-t="csv" class="on">📤 رفع CSV</button>
+          <button data-t="json">📥 استيراد JSON</button>
+          <button data-t="manual">✏ إدخال يدوي</button>
+          <button data-t="manage">🗄 إدارة القاعدة</button>
         </div>
 
-        <!-- CSV -->
         <div class="tab-pane on" id="pane-csv">
-          <p class="hint">الأعمدة المتوقعة: <code>year, type(exp/imp), commodity_name, commodity_value_kusd, country_name, country_value_kusd, region</code></p>
-          <div class="drop-zone" id="csv-drop">اسحب ملف CSV هنا أو انقر للاختيار
-            <input type="file" id="csv-file" accept=".csv" style="display:none">
+          <p class="hint">الأعمدة: <code>year, type (exp/imp), commodity_name, commodity_value_kusd, country_name, country_value_kusd, region</code></p>
+          <div class="dz" id="csv-dz"><b>اسحب ملف CSV هنا</b>أو انقر للاختيار<input type="file" id="csv-fi" accept=".csv" style="display:none"></div>
+          <div class="row-btns">
+            <button class="btn btn-sm" onclick="dlTemplate()">⬇ تحميل قالب</button>
+            <button class="btn btn-navy btn-sm" id="csv-confirm-btn" style="display:none" onclick="confirmCSV()">✅ تأكيد الاستيراد</button>
           </div>
-          <button class="btn btn-sm" style="margin-top:10px" onclick="downloadTemplate()">⬇ تحميل قالب CSV</button>
-          <div id="csv-preview"></div>
-          <div id="csv-confirm-slot"></div>
+          <div id="csv-pvw"></div>
           <div id="csv-msg"></div>
         </div>
 
-        <!-- JSON -->
         <div class="tab-pane" id="pane-json">
-          <p class="hint">اختر ملف نسخة احتياطية JSON. سيتم التحقق من البنية قبل الاستيراد.</p>
-          <input type="file" id="json-file" accept=".json">
-          <div class="fld" style="margin-top:10px">
-            <label>وضع الاستيراد</label>
-            <select id="json-mode">
-              <option value="merge">دمج مع البيانات الحالية</option>
-              <option value="replace">استبدال كامل</option>
-            </select>
+          <p class="hint">اختر ملف نسخة احتياطية JSON تم تصديره مسبقاً.</p>
+          <div class="fld"><label>الملف</label><input type="file" id="json-fi" accept=".json"></div>
+          <div class="fld"><label>وضع الاستيراد</label>
+            <select id="json-mode"><option value="merge">دمج مع الحالي</option><option value="replace">استبدال كامل</option></select>
           </div>
-          <button class="btn btn-navy btn-sm" style="margin-top:10px" onclick="importJSON()">استيراد</button>
+          <button class="btn btn-navy btn-sm" style="margin-top:8px" onclick="doImportJSON()">استيراد</button>
           <div id="json-msg"></div>
         </div>
 
-        <!-- Manual -->
         <div class="tab-pane" id="pane-manual">
           <div class="man-grid">
-            <div class="fld"><label>السنة</label><input type="number" id="m-year" value="2025"></div>
-            <div class="fld"><label>النوع</label>
-              <select id="m-type"><option value="exp">صادرات</option><option value="imp">واردات</option></select>
-            </div>
-            <div class="fld"><label>اسم السلعة</label><input id="m-com" placeholder="مثال: الذهب"></div>
-            <div class="fld"><label>قيمة السلعة (ألف $)</label><input type="number" id="m-comv" placeholder="0"></div>
-            <div class="fld"><label>اسم الدولة</label><input id="m-ctr" placeholder="مثال: الإمارات"></div>
-            <div class="fld"><label>قيمة الدولة (ألف $)</label><input type="number" id="m-ctrv" placeholder="0"></div>
+            <div class="fld"><label>السنة</label><input type="number" id="m-yr" value="2026" min="2000" max="2050"></div>
+            <div class="fld"><label>النوع</label><select id="m-tp"><option value="exp">صادرات</option><option value="imp">واردات</option></select></div>
+            <div class="fld"><label>اسم السلعة</label><input type="text" id="m-cn" placeholder="مثال: الذهب"></div>
+            <div class="fld"><label>قيمة السلعة (ألف $)</label><input type="number" id="m-cv" placeholder="0" min="0"></div>
+            <div class="fld"><label>اسم الدولة</label><input type="text" id="m-dn" placeholder="مثال: الإمارات"></div>
+            <div class="fld"><label>قيمة الدولة (ألف $)</label><input type="number" id="m-dv" placeholder="0" min="0"></div>
             <div class="fld"><label>المنطقة</label>
-              <select id="m-region">
-                <option value="عربي">عربي</option><option value="آسيا">آسيا</option>
-                <option value="إفريقيا">إفريقيا</option><option value="أوروبا">أوروبا</option>
-                <option value="صناعي">صناعي</option>
-              </select>
+              <select id="m-rg"><option value="عربي">عربي</option><option value="آسيا">آسيا</option>
+                <option value="إفريقيا">إفريقيا</option><option value="أوروبا">أوروبا</option><option value="صناعي">صناعي</option></select>
             </div>
           </div>
-          <button class="btn btn-sm" onclick="manualAddRow()">+ إضافة صف</button>
-          <div class="man-list" id="man-list" style="display:none"></div>
-          <button class="btn btn-navy btn-sm" style="margin-top:10px" onclick="manualSaveAll()">حفظ الكل</button>
-          <div id="manual-msg"></div>
+          <div class="row-btns"><button class="btn btn-sm" onclick="manAdd()">+ إضافة صف</button></div>
+          <div class="man-rows" id="man-rows" style="display:none"></div>
+          <div class="row-btns" style="margin-top:8px">
+            <button class="btn btn-navy btn-sm" onclick="manSave()">💾 حفظ الكل</button>
+          </div>
+          <div id="man-msg"></div>
         </div>
 
-        <!-- Manage -->
         <div class="tab-pane" id="pane-manage">
-          <p class="hint">تصدير نسخ احتياطية كاملة أو إعادة تعيين قاعدة البيانات.</p>
-          <div class="db-btns" style="margin-bottom:14px">
-            <button class="btn btn-navy" onclick="exportJSON()">⬇ تصدير نسخة JSON كاملة</button>
-            <button class="btn btn-navy" onclick="exportCSV()">⬇ تصدير CSV كامل</button>
+          <p class="hint">تصدير نسخ احتياطية أو إعادة تعيين قاعدة البيانات.</p>
+          <div class="row-btns" style="margin-bottom:16px">
+            <button class="btn btn-navy btn-sm" onclick="doExportJSON()">⬇ تصدير JSON كامل</button>
+            <button class="btn btn-sm" onclick="doExportCSV()">⬇ تصدير CSV كامل</button>
           </div>
-          <p class="hint">لإعادة التعيين اكتب العبارة <b>DELETE TRADE DATA</b> ثم اضغط الزر.</p>
-          <input id="reset-phrase" placeholder="DELETE TRADE DATA" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:7px;margin-bottom:8px">
-          <button class="btn btn-danger" onclick="resetDB()">⚠ إعادة تعيين قاعدة البيانات</button>
-          <div id="manage-msg"></div>
+          <p class="hint">لإعادة التعيين اكتب: <b>DELETE TRADE DATA</b></p>
+          <input class="phrase-input" id="reset-phrase" placeholder="DELETE TRADE DATA">
+          <button class="btn btn-danger btn-sm" onclick="doReset()">⚠ إعادة تعيين قاعدة البيانات</button>
+          <div id="mg-msg"></div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- Service scripts -->
 <script>
+/* === storage-service.js === */
 window.SEO_SERVICES = window.SEO_SERVICES || {};
 
 window.SEO_SERVICES.storage = {
@@ -425,8 +519,10 @@ window.SEO_SERVICES.storage = {
     localStorage.setItem(key, JSON.stringify(value));
   },
 };
+
 </script>
 <script>
+/* === trade-seed.js === */
 ﻿window.SEO_DATA = window.SEO_DATA || {};
 window.SEO_DATA.SEED = {
   annual:[
@@ -525,368 +621,10 @@ window.SEO_DATA.SEED = {
   ]
 };
 
+
 </script>
 <script>
-window.SEO_DATA = window.SEO_DATA || {};
-
-window.SEO_DATA.COMMODITY_DICTIONARY = [
-  { commodityId: "gold", canonicalEnglishName: "Gold", canonicalArabicName: "الذهب", displayName: "الذهب", aliases: ["Gold", "الذهب", "ذهب", "ذھب"] },
-  { commodityId: "crude_oil", canonicalEnglishName: "Crude Oil", canonicalArabicName: "بترول خام", displayName: "بترول خام", aliases: ["Crude Oil", "بترول خام"] },
-  { commodityId: "benzine", canonicalEnglishName: "Benzine", canonicalArabicName: "بنزين", displayName: "بنزين", aliases: ["Benzine", "بنزين"] },
-  { commodityId: "kerosene", canonicalEnglishName: "Kerosene", canonicalArabicName: "كيروسين", displayName: "كيروسين", aliases: ["Kerosene", "كيروسين"] },
-  { commodityId: "light_gas", canonicalEnglishName: "Light Gas", canonicalArabicName: "غاز طبيعي", displayName: "غاز طبيعي", aliases: ["Light Gas", "غاز طبيعي"] },
-  { commodityId: "fo_hcgo", canonicalEnglishName: "F/O& HCGO", canonicalArabicName: "الوقود الحيوى", displayName: "الوقود الحيوى", aliases: ["F/O& HCGO", "F/O & HCGO", "الوقود الحيوى", "الوقود الحيوي"] },
-  { commodityId: "furnace", canonicalEnglishName: "Furnace", canonicalArabicName: "فيرنس", displayName: "فيرنس", aliases: ["Furnace", "فيرنس"] },
-  { commodityId: "mixed_butagas", canonicalEnglishName: "Mixed butagas", canonicalArabicName: "غاز مخلوط", displayName: "غاز مخلوط", aliases: ["Mixed butagas", "Mixed butagas", "غاز مخلوط"] },
-  { commodityId: "diesel", canonicalEnglishName: "Diesel", canonicalArabicName: "جازولين", displayName: "جازولين", aliases: ["Diesel", "جازولين"] },
-  { commodityId: "other_petroleum_products", canonicalEnglishName: "Others Petroleium Produts", canonicalArabicName: "منتجات بترولية اخرى", displayName: "منتجات بترولية اخرى", aliases: ["Others Petroleium Produts", "Others Petroleum Produts", "Others Petroleum Products", "Other Petroleum Products", "منتجات بترولية اخرى", "منتجات بترولية أخرى"] },
-  { commodityId: "cotton", canonicalEnglishName: "Cotton", canonicalArabicName: "قطن", displayName: "قطن", aliases: ["Cotton", "قطن"] },
-  { commodityId: "gum_arabic", canonicalEnglishName: "Gum Arabic", canonicalArabicName: "صمغ عربي", displayName: "صمغ عربي", aliases: ["Gum Arabic", "صمغ عربي", "صمغ عربى"] },
-  { commodityId: "gum_hashab", canonicalEnglishName: "Gum Hashab", canonicalArabicName: "صمغ هشاب", displayName: "صمغ هشاب", aliases: ["Gum Hashab", "Hashab Gum", "صمغ هشاب"] },
-  { commodityId: "gum_taleh", canonicalEnglishName: "Gum Taleh", canonicalArabicName: "صمغ طلح", displayName: "صمغ طلح", aliases: ["Gum Taleh", "Gum Talha", "Taleh Gum", "Talha Gum", "صمغ طلح"] },
-  { commodityId: "sesame", canonicalEnglishName: "Sesame", canonicalArabicName: "سمسم", displayName: "سمسم", aliases: ["Sesame", "سمسم"] },
-  { commodityId: "sugar", canonicalEnglishName: "Sugar", canonicalArabicName: "السكر", displayName: "السكر", aliases: ["Sugar", "السكر", "سكر"] },
-  { commodityId: "ethanol", canonicalEnglishName: "Ethanol", canonicalArabicName: "الايثانول", displayName: "الايثانول", aliases: ["Ethanol", "الايثانول", "الإيثانول"] },
-  { commodityId: "groundnuts", canonicalEnglishName: "Groundnuts", canonicalArabicName: "فول سوداني", displayName: "فول سوداني", aliases: ["Groundnuts", "Ground nuts", "فول سوداني", "فول سودانى"] },
-  { commodityId: "cake_and_meal", canonicalEnglishName: "Cake and Meal", canonicalArabicName: "امباز", displayName: "امباز", aliases: ["Cake and Meal", "Cake & Meal", "امباز", "أمباز"] },
-  { commodityId: "dura_sorghum", canonicalEnglishName: "Dura (Sorghum)", canonicalArabicName: "ذرة", displayName: "ذرة", aliases: ["Dura (Sorghum)", "Dura", "Sorghum", "ذرة"] },
-  { commodityId: "livestock", canonicalEnglishName: "Livestock", canonicalArabicName: "حيوانات حية", displayName: "حيوانات حية", aliases: ["Livestock", "حيوانات حية"] },
-  { commodityId: "meat", canonicalEnglishName: "Meat", canonicalArabicName: "لحوم", displayName: "لحوم", aliases: ["Meat", "لحوم"] },
-  { commodityId: "hides_skins", canonicalEnglishName: "Hides & Skins", canonicalArabicName: "جلود", displayName: "جلود", aliases: ["Hides & Skins", "Hides and Skins", "Hides Skins", "جلود"] },
-  { commodityId: "others", canonicalEnglishName: "Others", canonicalArabicName: "أخرى", displayName: "أخرى", aliases: ["Others", "Other", "أخرى", "اخري", "اخرى"] },
-  { commodityId: "wheat_wheat_flour", canonicalEnglishName: "Wheat & Wheat Flour", canonicalArabicName: "قمح ودقيق قمح", displayName: "قمح ودقيق قمح", aliases: ["Wheat & Wheat Flour", "Wheat and Wheat Flour", "قمح ودقيق قمح"] },
-  { commodityId: "dairy_products", canonicalEnglishName: "Dairy Products", canonicalArabicName: "منتجات ألبان", displayName: "منتجات ألبان", aliases: ["Dairy Products", "منتجات ألبان", "منتجات البان"] },
-  { commodityId: "vegetables_vegetable_products", canonicalEnglishName: "Vegetables & Veget. Products", canonicalArabicName: "خضروات ومنتجات نباتية", displayName: "خضروات ومنتجات نباتية", aliases: ["Vegetables & Veget. Products", "Vegetables and Vegetable Products", "Vegetables & Vegetable Products", "خضروات ومنتجات نباتية"] },
-  { commodityId: "other_foodstuffs", canonicalEnglishName: "Other Foodsutfs", canonicalArabicName: "مواد غذائية أخرى", displayName: "مواد غذائية أخرى", aliases: ["Other Foodsutfs", "Other Foodstuffs", "Other Foods", "مواد غذائية أخرى", "مواد غذائية اخري"] },
-  { commodityId: "animal_vegetable_oils", canonicalEnglishName: "Animal & Vegetable Oils", canonicalArabicName: "زيوت حيوانية ونباتية", displayName: "زيوت حيوانية ونباتية", aliases: ["Animal & Vegetable Oils", "Animal and Vegetable Oils", "زيوت حيوانية ونباتية"] },
-  { commodityId: "beverages_tobacco", canonicalEnglishName: "Beverages & Tobacco", canonicalArabicName: "مشروبات وتبغ", displayName: "مشروبات وتبغ", aliases: ["Beverages & Tobacco", "Beverages and Tobacco", "مشروبات وتبغ"] },
-  { commodityId: "petroleum_products", canonicalEnglishName: "Petroleum Products", canonicalArabicName: "منتجات بترولية", displayName: "منتجات بترولية", aliases: ["Petroleum Products", "منتجات بترولية"] },
-  { commodityId: "other_raw_materials", canonicalEnglishName: "Other Raw Materials", canonicalArabicName: "مواد خام أخرى", displayName: "مواد خام أخرى", aliases: ["Other Raw Materials", "مواد خام أخرى", "مواد خام اخري"] },
-  { commodityId: "medicines", canonicalEnglishName: "Medicines", canonicalArabicName: "أدوية", displayName: "أدوية", aliases: ["Medicines", "Medicine", "أدوية", "ادوية"] },
-  { commodityId: "other_chemical_products", canonicalEnglishName: "Other Chemical Products", canonicalArabicName: "منتجات كيميائية أخرى", displayName: "منتجات كيميائية أخرى", aliases: ["Other Chemical Products", "منتجات كيميائية أخرى", "منتجات كيميائية اخري"] },
-  { commodityId: "manufactured_goods", canonicalEnglishName: "Manufactured Goods", canonicalArabicName: "مصنوعات", displayName: "مصنوعات", aliases: ["Manufactured Goods", "مصنوعات"] },
-  { commodityId: "machinery_equipments", canonicalEnglishName: "Machinery and Equipments", canonicalArabicName: "آلات ومعدات", displayName: "آلات ومعدات", aliases: ["Machinery and Equipments", "Machinery & Equipments", "Machinery and Equipment", "آلات ومعدات", "الات ومعدات"] },
-  { commodityId: "transport_equipments", canonicalEnglishName: "Transport Equipments", canonicalArabicName: "معدات نقل", displayName: "معدات نقل", aliases: ["Transport Equipments", "Transport Equipment", "معدات نقل"] },
-  { commodityId: "textiles", canonicalEnglishName: "Textiles", canonicalArabicName: "منسوجات", displayName: "منسوجات", aliases: ["Textiles", "منسوجات"] },
-  { commodityId: "extra_long_staple_cotton", canonicalEnglishName: "Extra-Long Staple Cotton", canonicalArabicName: "", displayName: "Extra-Long Staple Cotton", aliases: ["Extra-Long Staple Cotton", "Extra Long Staple Cotton"] },
-  { commodityId: "long_staple_cotton", canonicalEnglishName: "Long Staple Cotton", canonicalArabicName: "", displayName: "Long Staple Cotton", aliases: ["Long Staple Cotton"] },
-  { commodityId: "short_medium_staple_cotton", canonicalEnglishName: "Short& Medium Staple Cotton", canonicalArabicName: "", displayName: "Short& Medium Staple Cotton", aliases: ["Short& Medium Staple Cotton", "Short & Medium Staple Cotton", "Short Medium Staple Cotton"] },
-  { commodityId: "gum_powder", canonicalEnglishName: "Gum Powder", canonicalArabicName: "", displayName: "Gum Powder", aliases: ["Gum Powder"] },
-  { commodityId: "hibiscus_flower", canonicalEnglishName: "Hibiscus Flower", canonicalArabicName: "", displayName: "Hibiscus Flower", aliases: ["Hibiscus Flower", "Hibiscus"] },
-  { commodityId: "melon_seeds", canonicalEnglishName: "Melon Seeds", canonicalArabicName: "", displayName: "Melon Seeds", aliases: ["Melon Seeds", "Melon Seed"] },
-  { commodityId: "senna_pods", canonicalEnglishName: "Senna Pods", canonicalArabicName: "", displayName: "Senna Pods", aliases: ["Senna Pods", "Senna"] },
-  { commodityId: "henna", canonicalEnglishName: "Henna", canonicalArabicName: "", displayName: "Henna", aliases: ["Henna"] },
-  { commodityId: "cotton_seed_cake_meal", canonicalEnglishName: "Cotton Seed Cake & Meal", canonicalArabicName: "", displayName: "Cotton Seed Cake & Meal", aliases: ["Cotton Seed Cake & Meal", "Cotton Seed Cake and Meal"] },
-  { commodityId: "groundnut_cake_meal", canonicalEnglishName: "Groundnut Cake& Meal", canonicalArabicName: "", displayName: "Groundnut Cake& Meal", aliases: ["Groundnut Cake& Meal", "Groundnut Cake & Meal", "Groundnut Cake and Meal"] },
-  { commodityId: "other_cake_meal", canonicalEnglishName: "Other Cake & Meal", canonicalArabicName: "", displayName: "Other Cake & Meal", aliases: ["Other Cake & Meal", "Other Cake and Meal"] },
-  { commodityId: "cumin_seeds", canonicalEnglishName: "Cumin Seeds", canonicalArabicName: "", displayName: "Cumin Seeds", aliases: ["Cumin Seeds"] },
-  { commodityId: "sunflower_seeds", canonicalEnglishName: "Sunflower Seeds", canonicalArabicName: "", displayName: "Sunflower Seeds", aliases: ["Sunflower Seeds"] },
-  { commodityId: "crude_groundnuts_oil", canonicalEnglishName: "Crude Groundnuts Oil", canonicalArabicName: "", displayName: "Crude Groundnuts Oil", aliases: ["Crude Groundnuts Oil", "Crude Groundnut Oil"] },
-  { commodityId: "sesame_oil", canonicalEnglishName: "Sesame Oil", canonicalArabicName: "", displayName: "Sesame Oil", aliases: ["Sesame Oil"] },
-  { commodityId: "raw_cane", canonicalEnglishName: "Raw Cane", canonicalArabicName: "", displayName: "Raw Cane", aliases: ["Raw Cane"] },
-  { commodityId: "trefoil", canonicalEnglishName: "Trefoil", canonicalArabicName: "", displayName: "Trefoil", aliases: ["Trefoil"] },
-  { commodityId: "molasses", canonicalEnglishName: "Molasses", canonicalArabicName: "", displayName: "Molasses", aliases: ["Molasses"] },
-  { commodityId: "wheat_bran", canonicalEnglishName: "Wheat Bran", canonicalArabicName: "", displayName: "Wheat Bran", aliases: ["Wheat Bran"] },
-  { commodityId: "sheep", canonicalEnglishName: "Sheep", canonicalArabicName: "", displayName: "Sheep", aliases: ["Sheep"] },
-  { commodityId: "goats", canonicalEnglishName: "Goats", canonicalArabicName: "", displayName: "Goats", aliases: ["Goats"] },
-  { commodityId: "cattle", canonicalEnglishName: "Cattle", canonicalArabicName: "", displayName: "Cattle", aliases: ["Cattle"] },
-  { commodityId: "camels", canonicalEnglishName: "Camels", canonicalArabicName: "", displayName: "Camels", aliases: ["Camels"] },
-  { commodityId: "gazelle", canonicalEnglishName: "Gazelle", canonicalArabicName: "", displayName: "Gazelle", aliases: ["Gazelle"] },
-  { commodityId: "crossbred_camels", canonicalEnglishName: "Crossbred Camels", canonicalArabicName: "", displayName: "Crossbred Camels", aliases: ["Crossbred Camels"] },
-  { commodityId: "other_livestock", canonicalEnglishName: "Other Livestock", canonicalArabicName: "", displayName: "Other Livestock", aliases: ["Other Livestock"] },
-  { commodityId: "fish_fresh_chilled", canonicalEnglishName: "Fish ( Fresh or Chilled)", canonicalArabicName: "", displayName: "Fish ( Fresh or Chilled)", aliases: ["Fish ( Fresh or Chilled)", "Fish Fresh or Chilled", "Fish"] },
-  { commodityId: "vegetables", canonicalEnglishName: "Vegetables", canonicalArabicName: "", displayName: "Vegetables", aliases: ["Vegetables"] },
-  { commodityId: "fruits", canonicalEnglishName: "Fruits", canonicalArabicName: "", displayName: "Fruits", aliases: ["Fruits"] },
-  { commodityId: "other_metal", canonicalEnglishName: "Other metal", canonicalArabicName: "", displayName: "Other metal", aliases: ["Other metal", "Other Metal"] },
-  { commodityId: "copper_waste_scrap", canonicalEnglishName: "Copper Waste & Scrap", canonicalArabicName: "", displayName: "Copper Waste & Scrap", aliases: ["Copper Waste & Scrap", "Copper Waste and Scrap"] },
-  { commodityId: "lead_waste_scrap", canonicalEnglishName: "Lead Waste & Scrap", canonicalArabicName: "", displayName: "Lead Waste & Scrap", aliases: ["Lead Waste & Scrap", "Lead Waste and Scrap"] },
-  { commodityId: "iron_waste_scrap", canonicalEnglishName: "Iron Waste & Scrap", canonicalArabicName: "", displayName: "Iron Waste & Scrap", aliases: ["Iron Waste & Scrap", "Iron Waste and Scrap"] },
-  { commodityId: "aluminium_waste_scrap", canonicalEnglishName: "Aluminium waste & scrap", canonicalArabicName: "", displayName: "Aluminium waste & scrap", aliases: ["Aluminium waste & scrap", "Aluminium Waste & Scrap", "Aluminium waste and scrap"] },
-  { commodityId: "chromium", canonicalEnglishName: "Chromium", canonicalArabicName: "", displayName: "Chromium", aliases: ["Chromium"] },
-  { commodityId: "charcoal", canonicalEnglishName: "Charcoal", canonicalArabicName: "", displayName: "Charcoal", aliases: ["Charcoal"] },
-  { commodityId: "cement", canonicalEnglishName: "Cement", canonicalArabicName: "", displayName: "Cement", aliases: ["Cement"] },
-  { commodityId: "soft_drink", canonicalEnglishName: "Soft Drink", canonicalArabicName: "", displayName: "Soft Drink", aliases: ["Soft Drink", "Soft Drinks"] },
-  { commodityId: "lubban", canonicalEnglishName: "Lubban", canonicalArabicName: "", displayName: "Lubban", aliases: ["Lubban"] },
-  { commodityId: "import_wheat", canonicalEnglishName: "Wheat", canonicalArabicName: "قمح", displayName: "قمح", aliases: ["Wheat"] },
-  { commodityId: "import_wheat_flour", canonicalEnglishName: "Wheat Flour", canonicalArabicName: "دقيق قمح", displayName: "دقيق قمح", aliases: ["Wheat Flour"] },
-  { commodityId: "import_tea", canonicalEnglishName: "Tea", canonicalArabicName: "شاي", displayName: "شاي", aliases: ["Tea"] },
-  { commodityId: "import_coffee", canonicalEnglishName: "Coffee", canonicalArabicName: "بن", displayName: "بن", aliases: ["Coffee"] },
-  { commodityId: "import_fish_canned_fish", canonicalEnglishName: "Fish & Canned Fish", canonicalArabicName: "أسماك ومعلبات الأسماك", displayName: "أسماك ومعلبات الأسماك", aliases: ["Fish & Canned Fish", "Fish and Canned Fish"] },
-  { commodityId: "import_meat_meat_products", canonicalEnglishName: "Meat & Meat Products", canonicalArabicName: "لحوم ومنتجاتها", displayName: "لحوم ومنتجاتها", aliases: ["Meat & Meat Products", "Meat and Meat Products"] },
-  { commodityId: "import_fruits_fruit_products", canonicalEnglishName: "Fruits & Fruit Products", canonicalArabicName: "فواكه ومنتجاتها", displayName: "فواكه ومنتجاتها", aliases: ["Fruits & Fruit Products", "Fruits and Fruit Products"] },
-  { commodityId: "import_confectionery_sweets_buiscuits", canonicalEnglishName: "Confectionery, Sweets, & Buiscuits", canonicalArabicName: "حلويات وبسكويت", displayName: "حلويات وبسكويت", aliases: ["Confectionery, Sweets, & Buiscuits", "Confectionery Sweets & Buiscuits", "Confectionery, Sweets, & Biscuits"] },
-  { commodityId: "import_lentils", canonicalEnglishName: "Lentils", canonicalArabicName: "عدس", displayName: "عدس", aliases: ["Lentils"] },
-  { commodityId: "import_spices", canonicalEnglishName: "Spices", canonicalArabicName: "بهارات", displayName: "بهارات", aliases: ["Spices"] },
-  { commodityId: "import_rice", canonicalEnglishName: "Rice", canonicalArabicName: "أرز", displayName: "أرز", aliases: ["Rice"] },
-  { commodityId: "import_other_foodstuffs_monthly", canonicalEnglishName: "Other - Foodstuffs", canonicalArabicName: "مواد غذائية أخرى", displayName: "مواد غذائية أخرى", aliases: ["Other - Foodstuffs"] },
-  { commodityId: "import_soft_drinks", canonicalEnglishName: "Soft Drinks", canonicalArabicName: "مشروبات معدنية", displayName: "مشروبات معدنية", aliases: ["Soft Drinks"] },
-  { commodityId: "import_cigarettes", canonicalEnglishName: "Cigarettes", canonicalArabicName: "سجائر", displayName: "سجائر", aliases: ["Cigarettes"] },
-  { commodityId: "import_tobacco", canonicalEnglishName: "Tobacco", canonicalArabicName: "تبغ", displayName: "تبغ", aliases: ["Tobacco"] },
-  { commodityId: "import_other_beverages_tobacco", canonicalEnglishName: "Other - Beverages & Tobacco", canonicalArabicName: "مشروبات وتبغ أخرى", displayName: "مشروبات وتبغ أخرى", aliases: ["Other - Beverages & Tobacco", "Other - Beverages and Tobacco"] },
-  { commodityId: "import_jazolin", canonicalEnglishName: "Jazolin", canonicalArabicName: "جازولين", displayName: "جازولين", aliases: ["Jazolin"] },
-  { commodityId: "import_asphalt", canonicalEnglishName: "ASPHALT", canonicalArabicName: "أسفلت", displayName: "أسفلت", aliases: ["ASPHALT", "Asphalt"] },
-  { commodityId: "import_butagas", canonicalEnglishName: "BUTAGAS", canonicalArabicName: "غاز طبيعي", displayName: "غاز طبيعي", aliases: ["BUTAGAS", "Butagas"] },
-  { commodityId: "import_lubricating_oil", canonicalEnglishName: "LUBRICATING OIL", canonicalArabicName: "زيوت تشحيم", displayName: "زيوت تشحيم", aliases: ["LUBRICATING OIL", "Lubricating Oil"] },
-  { commodityId: "import_other_petroleum_products_monthly", canonicalEnglishName: "Other - Petroleum Products", canonicalArabicName: "منتجات بترولية أخرى", displayName: "منتجات بترولية أخرى", aliases: ["Other - Petroleum Products"] },
-  { commodityId: "import_crude_plastic", canonicalEnglishName: "Crude Plastic", canonicalArabicName: "خام البلاستيك", displayName: "خام البلاستيك", aliases: ["Crude Plastic"] },
-  { commodityId: "import_crude_rubber", canonicalEnglishName: "Crude Rubber", canonicalArabicName: "خام المطاط", displayName: "خام المطاط", aliases: ["Crude Rubber"] },
-  { commodityId: "import_tallow", canonicalEnglishName: "Tallow", canonicalArabicName: "شحوم", displayName: "شحوم", aliases: ["Tallow"] },
-  { commodityId: "import_seeds_for_sowing", canonicalEnglishName: "Seeds for Sowing", canonicalArabicName: "بذور وتقاوي", displayName: "بذور وتقاوي", aliases: ["Seeds for Sowing"] },
-  { commodityId: "import_packing_paper", canonicalEnglishName: "Packing Paper", canonicalArabicName: "ورق تغليف", displayName: "ورق تغليف", aliases: ["Packing Paper"] },
-  { commodityId: "import_other_raw_materials_monthly", canonicalEnglishName: "Other - Raw Materials", canonicalArabicName: "مواد خام أخرى", displayName: "مواد خام أخرى", aliases: ["Other - Raw Materials"] },
-  { commodityId: "import_chemical_products", canonicalEnglishName: "Chemical Products", canonicalArabicName: "عناصر كيميائية ومركباتها", displayName: "عناصر كيميائية ومركباتها", aliases: ["Chemical Products"] },
-  { commodityId: "import_fertilizers", canonicalEnglishName: "Fertilizers", canonicalArabicName: "أسمدة", displayName: "أسمدة", aliases: ["Fertilizers"] },
-  { commodityId: "import_tanning_dying_materials", canonicalEnglishName: "Tanning & Dying Materials", canonicalArabicName: "مواد للدباغة والصباغة والتلوين", displayName: "مواد للدباغة والصباغة والتلوين", aliases: ["Tanning & Dying Materials", "Tanning and Dying Materials"] },
-  { commodityId: "import_perfumes_cosmetics", canonicalEnglishName: "Perfumes & Cosmetics", canonicalArabicName: "عطور ومستحضرات تجميل", displayName: "عطور ومستحضرات تجميل", aliases: ["Perfumes & Cosmetics", "Perfumes and Cosmetics"] },
-  { commodityId: "import_explosives", canonicalEnglishName: "Explosives", canonicalArabicName: "مفرقعات", displayName: "مفرقعات", aliases: ["Explosives"] },
-  { commodityId: "import_insecticides", canonicalEnglishName: "Insecticides", canonicalArabicName: "مبيدات حشرية", displayName: "مبيدات حشرية", aliases: ["Insecticides"] },
-  { commodityId: "import_other_chemicals_monthly", canonicalEnglishName: "Other - Chemicals", canonicalArabicName: "مواد كيميائية أخرى", displayName: "مواد كيميائية أخرى", aliases: ["Other - Chemicals"] },
-  { commodityId: "import_medical_pharmacetical_equipments", canonicalEnglishName: "Medical & Pharmacetical Equipments", canonicalArabicName: "معدات طبية وصيدلية", displayName: "معدات طبية وصيدلية", aliases: ["Medical & Pharmacetical Equipments", "Medical & Pharmaceutical Equipments", "Medical and Pharmacetical Equipments"] },
-  { commodityId: "import_leather_products", canonicalEnglishName: "Leather Products", canonicalArabicName: "مصنوعات الجلود", displayName: "مصنوعات الجلود", aliases: ["Leather Products"] },
-  { commodityId: "import_manufactured_rubber", canonicalEnglishName: "Manufactured Rubber", canonicalArabicName: "مصنوعات المطاط", displayName: "مصنوعات المطاط", aliases: ["Manufactured Rubber"] },
-  { commodityId: "import_manufactured_plastics", canonicalEnglishName: "Manufactured Plastics", canonicalArabicName: "مصنوعات البلاستيك", displayName: "مصنوعات البلاستيك", aliases: ["Manufactured Plastics"] },
-  { commodityId: "import_manufactured_wood_cork", canonicalEnglishName: "Manufactured Wood & Cork", canonicalArabicName: "مصنوعات خشب وفلين", displayName: "مصنوعات خشب وفلين", aliases: ["Manufactured Wood & Cork", "Manufactured Wood and Cork"] },
-  { commodityId: "import_glass_glassware", canonicalEnglishName: "Glass & Glassware", canonicalArabicName: "مصنوعات الزجاج", displayName: "مصنوعات الزجاج", aliases: ["Glass & Glassware", "Glass and Glassware"] },
-  { commodityId: "import_iron_steel", canonicalEnglishName: "Iron & Steel", canonicalArabicName: "حديد وصلب", displayName: "حديد وصلب", aliases: ["Iron & Steel", "Iron and Steel"] },
-  { commodityId: "import_manufactured_metals", canonicalEnglishName: "Manufactured Metals", canonicalArabicName: "مصنوعات المعادن", displayName: "مصنوعات المعادن", aliases: ["Manufactured Metals"] },
-  { commodityId: "import_footwear", canonicalEnglishName: "Footwear", canonicalArabicName: "أحذية", displayName: "أحذية", aliases: ["Footwear"] },
-  { commodityId: "import_jute_sacks", canonicalEnglishName: "Jute & Sacks", canonicalArabicName: "خيش وجوالات", displayName: "خيش وجوالات", aliases: ["Jute & Sacks", "Jute and Sacks"] },
-  { commodityId: "import_books_magazines_newspapers", canonicalEnglishName: "Books, Magazines, and Newspapers", canonicalArabicName: "كتب ومجلات وجرائد", displayName: "كتب ومجلات وجرائد", aliases: ["Books, Magazines, and Newspapers", "Books Magazines and Newspapers"] },
-  { commodityId: "import_cement_asbestos_pipes", canonicalEnglishName: "Cement & Asbestos Pipes", canonicalArabicName: "أسمنت ومواسير اسبستس", displayName: "أسمنت ومواسير اسبستس", aliases: ["Cement & Asbestos Pipes", "Cement and Asbestos Pipes"] },
-  { commodityId: "import_scientific_equipments", canonicalEnglishName: "Scientific Equipments", canonicalArabicName: "أجهزة علمية", displayName: "أجهزة علمية", aliases: ["Scientific Equipments", "Scientific Equipment"] },
-  { commodityId: "import_paper_products", canonicalEnglishName: "Paper Products", canonicalArabicName: "مصنوعات الورق", displayName: "مصنوعات الورق", aliases: ["Paper Products"] },
-  { commodityId: "import_ceramic_products", canonicalEnglishName: "Ceramic Products", canonicalArabicName: "مصنوعات الخزف", displayName: "مصنوعات الخزف", aliases: ["Ceramic Products"] },
-  { commodityId: "import_toys_sport_goods", canonicalEnglishName: "Toys & Sport Goods", canonicalArabicName: "لعب أطفال وأدوات رياضية", displayName: "لعب أطفال وأدوات رياضية", aliases: ["Toys & Sport Goods", "Toys and Sport Goods"] },
-  { commodityId: "import_other_manufactured_goods_monthly", canonicalEnglishName: "Other - Manufactured Goods", canonicalArabicName: "مصنوعات أخرى", displayName: "مصنوعات أخرى", aliases: ["Other - Manufactured Goods"] },
-  { commodityId: "import_non_electrical_appliances", canonicalEnglishName: "Non-Electrical Appliances", canonicalArabicName: "آلات غير كهربائية", displayName: "آلات غير كهربائية", aliases: ["Non-Electrical Appliances", "Non Electrical Appliances"] },
-  { commodityId: "import_electrical_appliances", canonicalEnglishName: "Electrical Appliances", canonicalArabicName: "آلات كهربائية", displayName: "آلات كهربائية", aliases: ["Electrical Appliances"] },
-  { commodityId: "import_refrigerators", canonicalEnglishName: "Refrigerators", canonicalArabicName: "ثلاجات", displayName: "ثلاجات", aliases: ["Refrigerators"] },
-  { commodityId: "import_air_conditioners", canonicalEnglishName: "Air Conditioners", canonicalArabicName: "مكيفات هواء", displayName: "مكيفات هواء", aliases: ["Air Conditioners"] },
-  { commodityId: "import_machinery_spare_parts", canonicalEnglishName: "Machinery Spare Parts", canonicalArabicName: "قطع غيار آلات", displayName: "قطع غيار آلات", aliases: ["Machinery Spare Parts"] },
-  { commodityId: "import_tv_radios_recorders", canonicalEnglishName: "T.V., Radios , Recorders,Tapes, etc.", canonicalArabicName: "تلفزيونات وراديوهات وأشرطة ومسجلات وأجهزة اتصال", displayName: "تلفزيونات وراديوهات وأشرطة ومسجلات وأجهزة اتصال", aliases: ["T.V., Radios , Recorders,Tapes, etc.", "T.V., Radios , Recorders,Tapes, etc", "TV Radios Recorders Tapes etc"] },
-  { commodityId: "import_dry_batteries", canonicalEnglishName: "Dry Batteries", canonicalArabicName: "بطاريات جافة", displayName: "بطاريات جافة", aliases: ["Dry Batteries"] },
-  { commodityId: "import_accumulators", canonicalEnglishName: "Accumulators", canonicalArabicName: "بطاريات", displayName: "بطاريات", aliases: ["Accumulators"] },
-  { commodityId: "import_tractors", canonicalEnglishName: "Tractors", canonicalArabicName: "جرارات", displayName: "جرارات", aliases: ["Tractors"] },
-  { commodityId: "import_ovens", canonicalEnglishName: "Ovens", canonicalArabicName: "أفران", displayName: "أفران", aliases: ["Ovens"] },
-  { commodityId: "import_other_machinery_equipments_monthly", canonicalEnglishName: "Other - Machinery & Equipments", canonicalArabicName: "آلات ومعدات أخرى", displayName: "آلات ومعدات أخرى", aliases: ["Other - Machinery & Equipments", "Other - Machinery and Equipments"] },
-  { commodityId: "import_railway_locomotves", canonicalEnglishName: "Railway Locomotves", canonicalArabicName: "قاطرات", displayName: "قاطرات", aliases: ["Railway Locomotves", "Railway Locomotives"] },
-  { commodityId: "import_railway_wagons", canonicalEnglishName: "Railway Wagons", canonicalArabicName: "عربات قطارات", displayName: "عربات قطارات", aliases: ["Railway Wagons"] },
-  { commodityId: "import_motor_cars", canonicalEnglishName: "Motor Cars", canonicalArabicName: "عربات صوالين", displayName: "عربات صوالين", aliases: ["Motor Cars"] },
-  { commodityId: "import_trucks_lorries", canonicalEnglishName: "Trucks & Lorries", canonicalArabicName: "شاحنات ولواري", displayName: "شاحنات ولواري", aliases: ["Trucks & Lorries", "Trucks and Lorries"] },
-  { commodityId: "import_busses", canonicalEnglishName: "Busses", canonicalArabicName: "بصات", displayName: "بصات", aliases: ["Busses", "Buses"] },
-  { commodityId: "import_tyres_tubes", canonicalEnglishName: "Tyres & Tubes", canonicalArabicName: "أنابيب وإطارات", displayName: "أنابيب وإطارات", aliases: ["Tyres & Tubes", "Tyres and Tubes", "Tires & Tubes"] },
-  { commodityId: "import_autos_spare_parts", canonicalEnglishName: "Autos Spare Parts", canonicalArabicName: "قطع غيار عربات", displayName: "قطع غيار عربات", aliases: ["Autos Spare Parts", "Auto Spare Parts"] },
-  { commodityId: "import_motor_cycles", canonicalEnglishName: "Motor-Cycles", canonicalArabicName: "دراجات بخارية", displayName: "دراجات بخارية", aliases: ["Motor-Cycles", "Motor Cycles", "Motorcycles"] },
-  { commodityId: "import_bicycles", canonicalEnglishName: "Bicycles", canonicalArabicName: "دراجات", displayName: "دراجات", aliases: ["Bicycles"] },
-  { commodityId: "import_aircrafts", canonicalEnglishName: "Aircrafts", canonicalArabicName: "طائرات", displayName: "طائرات", aliases: ["Aircrafts", "Aircraft"] },
-  { commodityId: "import_aircrafts_spare_parts", canonicalEnglishName: "Aircrafts Spare Parts", canonicalArabicName: "قطع غيار طائرات", displayName: "قطع غيار طائرات", aliases: ["Aircrafts Spare Parts", "Aircraft Spare Parts"] },
-  { commodityId: "import_locomotive_spare_parts", canonicalEnglishName: "Locomotive Spare Parts", canonicalArabicName: "قطع غيار قاطرات", displayName: "قطع غيار قاطرات", aliases: ["Locomotive Spare Parts"] },
-  { commodityId: "import_ferries_steamers", canonicalEnglishName: "Ferries & Steamers", canonicalArabicName: "مراكب بخارية ومعديات", displayName: "مراكب بخارية ومعديات", aliases: ["Ferries & Steamers", "Ferries and Steamers"] },
-  { commodityId: "import_other_transport_equipments_monthly", canonicalEnglishName: "Other - Transport Equipments", canonicalArabicName: "وسائل نقل أخرى", displayName: "وسائل نقل أخرى", aliases: ["Other - Transport Equipments", "Other - Transport Equipment"] },
-  { commodityId: "import_yarn", canonicalEnglishName: "Yarn", canonicalArabicName: "غزل", displayName: "غزل", aliases: ["Yarn"] },
-  { commodityId: "import_sewing_threads", canonicalEnglishName: "Sewing Threads", canonicalArabicName: "خيوط حياكة", displayName: "خيوط حياكة", aliases: ["Sewing Threads"] },
-  { commodityId: "import_woven_synthetic_fabrics", canonicalEnglishName: "Woven Synthetic Fabrics", canonicalArabicName: "أقمشة من حرير صناعي", displayName: "أقمشة من حرير صناعي", aliases: ["Woven Synthetic Fabrics"] },
-  { commodityId: "import_woven_cotton_fabrics", canonicalEnglishName: "Woven Cotton Fabrics", canonicalArabicName: "أقمشة من قطن", displayName: "أقمشة من قطن", aliases: ["Woven Cotton Fabrics"] },
-  { commodityId: "import_woven_flax_fabrics", canonicalEnglishName: "Woven Flax. Fabrics", canonicalArabicName: "أقمشة من كتان", displayName: "أقمشة من كتان", aliases: ["Woven Flax. Fabrics", "Woven Flax Fabrics"] },
-  { commodityId: "import_man_made_filaments_staple", canonicalEnglishName: "Man-Made Filaments& Staple", canonicalArabicName: "منسوجات من شعيرات تركيبية", displayName: "منسوجات من شعيرات تركيبية", aliases: ["Man-Made Filaments& Staple", "Man-Made Filaments & Staple"] },
-  { commodityId: "import_wadding_textile_materials", canonicalEnglishName: "Wadding Of Textile Materials", canonicalArabicName: "حشو من مواد نسيجية", displayName: "حشو من مواد نسيجية", aliases: ["Wadding Of Textile Materials", "Wadding of Textile Materials"] },
-  { commodityId: "import_carpets", canonicalEnglishName: "Carpets", canonicalArabicName: "سجاد", displayName: "سجاد", aliases: ["Carpets"] },
-  { commodityId: "import_special_woven_fabrics", canonicalEnglishName: "Special Woven Fabrics", canonicalArabicName: "منسوجات بصفات خاصة", displayName: "منسوجات بصفات خاصة", aliases: ["Special Woven Fabrics"] },
-  { commodityId: "import_knitted_crocheted_fabrics", canonicalEnglishName: "Knitted Or Crocheted Fabrics", canonicalArabicName: "أقمشة مصنعة", displayName: "أقمشة مصنعة", aliases: ["Knitted Or Crocheted Fabrics", "Knitted or Crocheted Fabrics"] },
-  { commodityId: "import_ready_made_clothes", canonicalEnglishName: "Ready Made Clothes", canonicalArabicName: "ملبوسات جاهزة", displayName: "ملبوسات جاهزة", aliases: ["Ready Made Clothes"] },
-  { commodityId: "import_other_textiles_monthly", canonicalEnglishName: "Other - Textiles", canonicalArabicName: "منسوجات أخرى", displayName: "منسوجات أخرى", aliases: ["Other - Textiles"] },
-  { commodityId: "import_other_imports_monthly", canonicalEnglishName: "Other - Imports", canonicalArabicName: "واردات أخرى", displayName: "واردات أخرى", aliases: ["Other - Imports"] },
-];
-</script>
-<script>
-window.SEO_SERVICES = window.SEO_SERVICES || {};
-
-window.SEO_SERVICES.commodity = {
-  dictionary: window.SEO_DATA.COMMODITY_DICTIONARY || [],
-
-  normalizeKey(name) {
-    return String(name || "")
-      .trim()
-      .replace(/\u00a0/g, " ")
-      .replace(/[إأآٱ]/g, "ا")
-      .replace(/ى/g, "ي")
-      .replace(/ة/g, "ه")
-      .replace(/ھ/g, "ه")
-      .replace(/[،,]/g, " ")
-      .replace(/&/g, " and ")
-      .replace(/[()]/g, " ")
-      .replace(/\s+/g, " ")
-      .toLowerCase();
-  },
-
-  getCommodityByAlias(name) {
-    const key = this.normalizeKey(name);
-    if (!key) return null;
-    return this.dictionary.find((item) =>
-      [item.canonicalEnglishName, item.canonicalArabicName, item.displayName, ...(item.aliases || [])]
-        .some((alias) => this.normalizeKey(alias) === key)
-    ) || null;
-  },
-
-  normalizeCommodityName(name) {
-    const rawName = String(name || "").trim();
-    const commodity = this.getCommodityByAlias(rawName);
-    if (!commodity) {
-      return {
-        status: "unmapped",
-        rawCommodityName: rawName,
-        commodityId: null,
-        commodityName: rawName,
-        displayName: rawName,
-        commodityCanonicalEnglishName: null,
-        commodityCanonicalArabicName: null,
-      };
-    }
-    return {
-      status: "mapped",
-      rawCommodityName: rawName,
-      commodityId: commodity.commodityId,
-      commodityName: commodity.displayName || commodity.canonicalArabicName || commodity.canonicalEnglishName,
-      displayName: commodity.displayName || commodity.canonicalArabicName || commodity.canonicalEnglishName,
-      commodityCanonicalEnglishName: commodity.canonicalEnglishName,
-      commodityCanonicalArabicName: commodity.canonicalArabicName,
-    };
-  },
-
-  applyCommodityNormalizationToObservation(observation) {
-    const raw = observation.rawCommodityName || observation.commodityName;
-    const normalized = this.normalizeCommodityName(raw);
-    return {
-      ...observation,
-      rawCommodityName: observation.rawCommodityName || normalized.rawCommodityName,
-      commodityId: normalized.commodityId || observation.commodityId,
-      commodityName: normalized.commodityName || observation.commodityName,
-      commodityCanonicalEnglishName: normalized.commodityCanonicalEnglishName,
-      commodityCanonicalArabicName: normalized.commodityCanonicalArabicName,
-      commodityNormalizationStatus: normalized.status,
-    };
-  },
-};
-</script>
-<script>
-window.SEO_DATA = window.SEO_DATA || {};
-
-window.SEO_DATA.CBOS_RULE_FAMILIES = {
-
-  families: [
-    {
-      id: "cbos-legacy-q4-word-distiller",
-      label: "CBOS legacy Q4 Word/Distiller PDFs",
-      description: "Skeleton family for older CBOS Q4 trade digest PDFs such as 2013 and 2017.",
-      status: "planned",
-    },
-    {
-      id: "cbos-modern-pdfium",
-      label: "CBOS modern PDFium PDFs",
-      description: "Skeleton family for newer CBOS PDFs generated with modern PDF tooling.",
-      status: "planned",
-    },
-  ],
-
-  profiles: [
-    {
-      id: "cbos-2013-q4-v1",
-      familyId: "cbos-legacy-q4-word-distiller",
-      targetYear: "2013",
-      publication: "Foreign Trade Statistical Digest Q4 2013",
-      extractionVersion: "0.1.0-foundation",
-      status: "placeholder",
-      tables: [
-        {
-          id: "cbos-2013-exports-summary-v1",
-          tableType: "exports_summary",
-          flow: "export",
-          year: 2013,
-          periodType: "annual",
-          publicationIssue: { issueYear: 2013, issuePeriod: "Q4", issueLabel: "Q4 2013" },
-          coveredEconomicPeriod: { year: 2013, periodType: "annual", startMonth: 1, endMonth: 12, label: "Annual 2013 Jan-Dec" },
-          expectedAnchor: "Summary Of Exports During",
-          expectedTotalValueUsdThousand: 7086219,
-          status: "prototype",
-        },
-        {
-          id: "cbos-2013-imports-summary-v1",
-          tableType: "imports_summary",
-          flow: "import",
-          year: 2013,
-          periodType: "annual",
-          publicationIssue: { issueYear: 2013, issuePeriod: "Q4", issueLabel: "Q4 2013" },
-          coveredEconomicPeriod: { year: 2013, periodType: "annual", startMonth: 1, endMonth: 12, label: "Annual 2013 Jan-Dec" },
-          expectedAnchor: "Summary Of Imports During",
-          expectedAnchors: ["Summary Of Imports During", "Summary Of Imports By Commodity During"],
-          expectedTotalValueUsdThousand: 9918068,
-          expectedRowCount: 16,
-          status: "prototype",
-        },
-        {
-          id: "cbos-2013-monthly-exports-v1",
-          tableType: "exports_by_commodity_monthly",
-          flow: "export",
-          year: 2013,
-          periodType: "monthly",
-          publicationIssue: { issueYear: 2013, issuePeriod: "Q4", issueLabel: "Q4 2013" },
-          coveredEconomicPeriod: { year: 2013, periodType: "monthly", startMonth: 1, endMonth: 12, label: "Monthly 2013 Jan-Dec" },
-          expectedAnchor: "Exports by commodities",
-          expectedMonths: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-          status: "prototype-draft-only",
-        },
-      ],
-      notes: "B2 prototypes: deterministic extraction is limited to the 2013 exports/imports summary tables and draft-only 2013 monthly exports commodity rows.",
-    },
-    {
-      id: "cbos-2014-q4-v1",
-      familyId: "cbos-legacy-q4-word-distiller",
-      targetYear: "2014",
-      publication: "Foreign Trade Statistical Digest Q4 2014",
-      sourceFileName: "digest_q4_14_0.pdf",
-      sourceUrl: "https://cbos.gov.sd/sites/default/files/digest_q4_14_0.pdf",
-      extractionVersion: "0.1.0-b4-pilot",
-      status: "pilot-draft-only",
-      structuralComparison: {
-        comparedTo: "cbos-2013-q4-v1",
-        result: "same legacy Q4 Word/Distiller annual-summary layout family",
-        notes: "B4 pilot uses only annual export/import summary tables. No monthly, quarterly, country, approval, or publishing behavior is enabled for 2014.",
-      },
-      tables: [
-        {
-          id: "cbos-2014-exports-summary-v1",
-          tableType: "exports_summary",
-          flow: "export",
-          year: 2014,
-          periodType: "annual",
-          publicationIssue: { issueYear: 2014, issuePeriod: "Q4", issueLabel: "Q4 2014" },
-          coveredEconomicPeriod: { year: 2014, periodType: "annual", startMonth: 1, endMonth: 12, label: "Annual 2014 Jan-Dec" },
-          expectedAnchor: "Summary Of Exports During",
-          expectedTotalValueUsdThousand: 4350210,
-          expectedRowCount: 22,
-          status: "pilot-draft-only",
-        },
-        {
-          id: "cbos-2014-imports-summary-v1",
-          tableType: "imports_summary",
-          flow: "import",
-          year: 2014,
-          periodType: "annual",
-          publicationIssue: { issueYear: 2014, issuePeriod: "Q4", issueLabel: "Q4 2014" },
-          coveredEconomicPeriod: { year: 2014, periodType: "annual", startMonth: 1, endMonth: 12, label: "Annual 2014 Jan-Dec" },
-          expectedAnchor: "Summary Of Imports By Commodity During",
-          expectedAnchors: ["Summary Of Imports During", "Summary Of Imports By Commodity During"],
-          expectedTotalValueUsdThousand: 9211300,
-          expectedRowCount: 16,
-          status: "pilot-draft-only",
-        },
-      ],
-      notes: "B4 pilot: deterministic draft-only extraction for 2014 annual exports/imports summaries. Existing 2013 active data and approvals must remain unchanged.",
-    },
-  ],
-};
-</script>
-<script>
+/* === trade-service.js === */
 window.SEO_SERVICES = window.SEO_SERVICES || {};
 
 window.SEO_SERVICES.trade = {
@@ -1500,664 +1238,755 @@ window.SEO_SERVICES.trade = {
     return `${flow} السنوية — ${period}`;
   },
 };
+
 </script>
-
 <script>
-/* ============ STATE ============ */
-const TRADE = window.SEO_SERVICES.trade;
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
 const SEED = window.SEO_DATA.SEED;
-const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const QUARTERS = ['Q1 يناير–مارس','Q2 أبريل–يونيو','Q3 يوليو–سبتمبر','Q4 أكتوبر–ديسمبر'];
-const PALETTE = ['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490','#be185d','#4d7c0f','#0369a1','#92400e','#1e40af'];
-const REGION_COLORS = {
-  'عربي':['#dbeafe','#1e40af'],'آسيا':['#fef3c7','#92400e'],'إفريقيا':['#dcfce7','#166534'],
-  'أوروبا':['#f3e8ff','#6b21a8'],'صناعي':['#ccfbf1','#065f46']
-};
+const SVC  = window.SEO_SERVICES.trade;
+const MN   = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const QN   = ['Q1 يناير–مارس','Q2 أبريل–يونيو','Q3 يوليو–سبتمبر','Q4 أكتوبر–ديسمبر'];
+const PAL  = ['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490','#be185d','#4d7c0f','#0369a1','#92400e','#1e40af'];
+const RBDG = {'عربي':['#dbeafe','#1e40af'],'آسيا':['#fef3c7','#92400e'],'إفريقيا':['#dcfce7','#166534'],'أوروبا':['#f3e8ff','#6b21a8'],'صناعي':['#ccfbf1','#065f46']};
 
-let DB = null;
-let chartObj = null;
-let lastResult = null;
-let chartMode = 'bar';
-let tableVisible = true;
-let sortState = {col:null, dir:'desc'};
-let manualRows = [];
+let DB, chartObj=null, lastRows=[], lastIsBalance=false, tableHidden=false, sortS={col:null,dir:'desc'}, manRows=[], csvParsed=null;
 
-const Q = {
-  flow:'export', view:'commodity', yearMode:'single', year:'2025',
-  fromYear:'2015', toYear:'2025', periodMode:'annual', month:'all',
-  quarter:'all', commodityName:'all', countryName:'all', region:'all'
-};
+const Q = {flow:'export',view:'commodity',ym:'single',yr:'',from:'',to:'',per:'annual',mo:'all',qr:'all',com:'all',ctr:'all',rgn:'all'};
 
-/* ============ FORMAT ============ */
+/* ══════════════════════════════════════════════════════
+   FORMAT
+══════════════════════════════════════════════════════ */
 function fmt(v){
+  if(v==null||isNaN(v)) return '—';
   const a=Math.abs(v), s=v<0?'-':'';
-  if(a>=1000000) return s+'$'+(a/1000000).toFixed(2)+'B';
+  if(a>=1e9) return s+'$'+(a/1e9).toFixed(2)+'B';
+  if(a>=1e6) return s+'$'+(a/1e6).toFixed(2)+'B';
   if(a>=1000) return s+'$'+(a/1000).toFixed(1)+'M';
   return s+'$'+Math.round(a).toLocaleString()+'K';
 }
+function pct(v,tot){ return tot?(v/tot*100).toFixed(1):'—'; }
+function esc(s){ const d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 
-/* ============ INIT ============ */
-document.addEventListener('DOMContentLoaded', () => {
-  DB = TRADE.loadDatabase(SEED);
-  populateSelects();
-  bindEvents();
-  syncFilterVisibility();
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  DB = SVC.loadDatabase(SEED);
+  const yrs = allYears();
+  Q.yr = yrs[0]||'2025';
+  Q.from = yrs[yrs.length-1]||'2015';
+  Q.to = yrs[0]||'2025';
+  buildYearSelects();
+  buildComCtrSelects();
+  bindFilters();
+  bindAdminUI();
+  syncVisibility();
   run();
-  renderDBSection();
+  refreshDBSection();
 });
 
-function dbYears(){ return Object.keys(DB.years).sort((a,b)=>Number(b)-Number(a)); }
+function allYears(){ return Object.keys(DB.years).sort((a,b)=>Number(b)-Number(a)); }
+function yrDat(y){ return DB.years[y]||{}; }
+function annRow(y){ return (DB.annual||[]).find(r=>String(r.y)===String(y)); }
 
-function populateSelects(){
-  const years = dbYears();
-  const yearOpts = years.map(y=>`<option value="${y}">${y}</option>`).join('');
-  document.getElementById('f-year').innerHTML = yearOpts;
-  const ascYears = [...years].reverse();
-  document.getElementById('f-fromYear').innerHTML = ascYears.map(y=>`<option value="${y}">${y}</option>`).join('');
-  document.getElementById('f-toYear').innerHTML = ascYears.map(y=>`<option value="${y}"${y===years[0]?' selected':''}>${y}</option>`).join('');
-  document.getElementById('f-year').value = years[0];
-  document.getElementById('f-fromYear').value = ascYears[0];
-  Q.year = years[0]; Q.fromYear = ascYears[0]; Q.toYear = years[0];
-
-  // months / quarters
-  document.getElementById('f-month').innerHTML =
-    '<option value="all">كل الشهور</option>' + AR_MONTHS.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
-  document.getElementById('f-quarter').innerHTML =
-    '<option value="all">كل الأرباع</option>' + QUARTERS.map((q,i)=>`<option value="${i+1}">${q}</option>`).join('');
-
-  // commodities & countries from all years
-  const coms = new Set(), ctrs = new Set();
-  years.forEach(y=>{
-    const yd = DB.years[y]||{};
-    (yd.exp_com||[]).forEach(r=>coms.add(r.n));
-    (yd.imp_com||[]).forEach(r=>coms.add(r.n));
-    (yd.exp_ctr||[]).forEach(r=>ctrs.add(r.n));
-    (yd.imp_ctr||[]).forEach(r=>ctrs.add(r.n));
-  });
-  document.getElementById('f-commodity').innerHTML =
-    '<option value="all">— كل السلع —</option>' + [...coms].sort((a,b)=>a.localeCompare(b,'ar')).map(c=>`<option value="${c}">${c}</option>`).join('');
-  document.getElementById('f-country').innerHTML =
-    '<option value="all">— كل الدول —</option>' + [...ctrs].sort((a,b)=>a.localeCompare(b,'ar')).map(c=>`<option value="${c}">${c}</option>`).join('');
+function buildYearSelects(){
+  const yrs=allYears();
+  const opts  = yrs.map(y=>`<option value="${y}">${y}</option>`).join('');
+  const optsA = [...yrs].reverse().map(y=>`<option value="${y}">${y}</option>`).join('');
+  el('f-yr').innerHTML=opts; el('f-yr').value=Q.yr;
+  el('f-from').innerHTML=optsA; el('f-from').value=Q.from;
+  el('f-to').innerHTML=opts; el('f-to').value=Q.to;
 }
 
-function bindEvents(){
-  document.querySelectorAll('#seg-flow button').forEach(b=>b.onclick=()=>{
-    Q.flow=b.dataset.v; setSeg('seg-flow',b); syncFilterVisibility(); run();
+function buildComCtrSelects(){
+  const yrs=allYears(), coms=new Set(), ctrs=new Set();
+  yrs.forEach(y=>{
+    const d=yrDat(y);
+    [...(d.exp_com||[]),...(d.imp_com||[])].forEach(r=>coms.add(r.n));
+    [...(d.exp_ctr||[]),...(d.imp_ctr||[])].forEach(r=>ctrs.add(r.n));
   });
-  document.querySelectorAll('#seg-view button').forEach(b=>b.onclick=()=>{
-    Q.view=b.dataset.v; setSeg('seg-view',b); syncFilterVisibility(); run();
-  });
-  document.getElementById('f-yearMode').onchange=e=>{Q.yearMode=e.target.value;syncFilterVisibility();run();};
-  document.getElementById('f-year').onchange=e=>{Q.year=e.target.value;run();renderDBSection();};
-  document.getElementById('f-fromYear').onchange=e=>{Q.fromYear=e.target.value;run();};
-  document.getElementById('f-toYear').onchange=e=>{Q.toYear=e.target.value;run();};
-  document.getElementById('f-periodMode').onchange=e=>{Q.periodMode=e.target.value;syncFilterVisibility();run();};
-  document.getElementById('f-month').onchange=e=>{Q.month=e.target.value;run();};
-  document.getElementById('f-quarter').onchange=e=>{Q.quarter=e.target.value;run();};
-  document.getElementById('f-commodity').onchange=e=>{Q.commodityName=e.target.value;run();};
-  document.getElementById('f-country').onchange=e=>{Q.countryName=e.target.value;run();};
-  document.getElementById('f-region').onchange=e=>{Q.region=e.target.value;run();};
+  const sortAr=a=>[...a].sort((a,b)=>a.localeCompare(b,'ar'));
+  el('f-com').innerHTML='<option value="all">— كل السلع —</option>'+sortAr(coms).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  el('f-ctr').innerHTML='<option value="all">— كل الدول —</option>'+sortAr(ctrs).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
 
-  document.querySelectorAll('.presets button').forEach(b=>b.onclick=()=>applyPreset(b.dataset.p));
-  document.querySelectorAll('#view-toggle button').forEach(b=>b.onclick=()=>{
-    chartMode=b.dataset.v; setSeg('view-toggle',b);
-    if(chartMode==='table'){ tableVisible=true; document.getElementById('table-card').style.display='';
-      document.getElementById('tbl-toggle-btn').textContent='إخفاء الجدول'; }
-    renderOutput();
-  });
+function el(id){ return document.getElementById(id); }
 
-  // admin tabs
-  document.querySelectorAll('#admin-tabs button').forEach(b=>b.onclick=()=>{
-    document.querySelectorAll('#admin-tabs button').forEach(x=>x.classList.remove('on'));
+function bindFilters(){
+  // Segmented buttons
+  el('seg-flow').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    Q.flow=b.dataset.v;
+    el('seg-flow').querySelectorAll('button').forEach(x=>x.className='');
+    b.className='on-'+{export:'exp',import:'imp',balance:'bal'}[Q.flow];
+    run();
+  });
+  el('seg-view').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    Q.view=b.dataset.v;
+    el('seg-view').querySelectorAll('button').forEach(x=>x.className='');
+    b.className='on';
+    syncVisibility(); run();
+  });
+  // Year mode
+  el('f-ym').onchange=e=>{Q.ym=e.target.value;syncVisibility();run();};
+  el('f-yr').onchange=e=>{Q.yr=e.target.value;run();refreshDBSection();};
+  el('f-from').onchange=e=>{Q.from=e.target.value;run();};
+  el('f-to').onchange=e=>{Q.to=e.target.value;run();};
+  // Period
+  el('f-per').onchange=e=>{Q.per=e.target.value;syncVisibility();run();};
+  el('f-mo').onchange=e=>{Q.mo=e.target.value;run();};
+  el('f-qr').onchange=e=>{Q.qr=e.target.value;run();};
+  // Filters
+  el('f-com').onchange=e=>{Q.com=e.target.value;run();};
+  el('f-ctr').onchange=e=>{Q.ctr=e.target.value;run();};
+  el('f-rgn').onchange=e=>{Q.rgn=e.target.value;run();};
+  // View toggle
+  el('vtog').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    el('vtog').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
     b.classList.add('on');
-    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-    document.getElementById('pane-'+b.dataset.t).classList.add('on');
+    if(b.dataset.v==='table'){ tableHidden=false; el('tbl-card').style.display=''; el('tbl-tog-btn').textContent='إخفاء'; }
+    renderChart(b.dataset.v);
   });
-
-  // csv drop
-  const drop=document.getElementById('csv-drop'), cf=document.getElementById('csv-file');
-  drop.onclick=()=>cf.click();
-  drop.ondragover=e=>{e.preventDefault();drop.classList.add('over');};
-  drop.ondragleave=()=>drop.classList.remove('over');
-  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');
-    if(e.dataTransfer.files[0])handleCSVFile(e.dataTransfer.files[0]);};
-  cf.onchange=e=>{if(e.target.files[0])handleCSVFile(e.target.files[0]);};
+  // Presets
+  el('page').querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>applyPreset(b.dataset.p));
 }
 
-function setSeg(id,btn){
-  document.querySelectorAll('#'+id+' button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
+function syncVisibility(){
+  const single=Q.ym==='single';
+  el('wrap-yr').style.display=single?'':'none';
+  el('wrap-rng').style.display=Q.ym==='range'?'grid':'none';
+  // Disable non-annual when not single year
+  [...el('f-per').options].forEach(o=>{o.disabled=!single&&o.value!=='annual';});
+  if(!single&&Q.per!=='annual'){Q.per='annual';el('f-per').value='annual';}
+  el('wrap-mo').style.display=Q.per==='monthly'&&single?'':'none';
+  el('wrap-qr').style.display=Q.per==='quarterly'&&single?'':'none';
 }
 
-function syncFilterVisibility(){
-  document.getElementById('wrap-year').style.display = Q.yearMode==='single'?'':'none';
-  document.getElementById('wrap-range').style.display = Q.yearMode==='range'?'flex':'none';
-  // period mode: disable non-annual when not single
-  const pm = document.getElementById('f-periodMode');
-  const single = Q.yearMode==='single';
-  [...pm.options].forEach(o=>{ if(o.value!=='annual') o.disabled=!single; });
-  if(!single && Q.periodMode!=='annual'){ Q.periodMode='annual'; pm.value='annual'; }
-  document.getElementById('wrap-month').style.display = Q.periodMode==='monthly'?'':'none';
-  document.getElementById('wrap-quarter').style.display = Q.periodMode==='quarterly'?'':'none';
-  // balance flow forces time view conceptually; keep view buttons but query handles it
-}
-
-/* ============ PRESETS ============ */
+/* ══════════════════════════════════════════════════════
+   PRESETS
+══════════════════════════════════════════════════════ */
 function applyPreset(p){
-  const years = dbYears(), latest = years[0];
-  const set = (id,val)=>{ const el=document.getElementById(id); if(el){el.value=val;} };
-  if(p==='topExp'){ Object.assign(Q,{flow:'export',view:'commodity',yearMode:'single',year:latest,periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  if(p==='topImp'){ Object.assign(Q,{flow:'import',view:'commodity',yearMode:'single',year:latest,periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  if(p==='expDest'){ Object.assign(Q,{flow:'export',view:'country',yearMode:'single',year:latest,periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  if(p==='impSrc'){ Object.assign(Q,{flow:'import',view:'country',yearMode:'single',year:latest,periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  if(p==='balance'){ Object.assign(Q,{flow:'balance',view:'time',yearMode:'all',periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  if(p==='compare'){ Object.assign(Q,{flow:'export',view:'time',yearMode:'range',fromYear:years[1]||years[0],toYear:latest,periodMode:'annual',commodityName:'all',countryName:'all',region:'all'}); }
-  // sync controls
-  document.getElementById('f-yearMode').value=Q.yearMode;
-  set('f-year',Q.year); set('f-fromYear',Q.fromYear); set('f-toYear',Q.toYear);
-  document.getElementById('f-periodMode').value=Q.periodMode;
-  set('f-month',Q.month); set('f-quarter',Q.quarter);
-  document.getElementById('f-commodity').value=Q.commodityName;
-  document.getElementById('f-country').value=Q.countryName;
-  document.getElementById('f-region').value=Q.region;
-  document.querySelectorAll('#seg-flow button').forEach(b=>b.classList.toggle('on',b.dataset.v===Q.flow));
-  document.querySelectorAll('#seg-view button').forEach(b=>b.classList.toggle('on',b.dataset.v===Q.view));
-  if(['topExp','topImp','expDest','impSrc'].includes(p)){ chartMode='bar'; }
-  if(p==='balance'){ chartMode='bar'; }
-  if(p==='compare'){ chartMode='line'; }
-  document.querySelectorAll('#view-toggle button').forEach(b=>b.classList.toggle('on',b.dataset.v===chartMode));
-  syncFilterVisibility();
-  run();
+  const yrs=allYears(), latest=yrs[0], earliest=yrs[yrs.length-1];
+  const defs={
+    topExp: {flow:'export',view:'commodity',ym:'single',yr:latest,per:'annual',com:'all',ctr:'all',rgn:'all'},
+    topImp: {flow:'import',view:'commodity',ym:'single',yr:latest,per:'annual',com:'all',ctr:'all',rgn:'all'},
+    expDest:{flow:'export',view:'country',ym:'single',yr:latest,per:'annual',com:'all',ctr:'all',rgn:'all'},
+    impSrc: {flow:'import',view:'country',ym:'single',yr:latest,per:'annual',com:'all',ctr:'all',rgn:'all'},
+    balance:{flow:'balance',view:'time',ym:'all',per:'annual',com:'all',ctr:'all',rgn:'all'},
+    monthlyExp:{flow:'export',view:'time',ym:'single',yr:latest,per:'monthly',mo:'all',com:'all',ctr:'all',rgn:'all'},
+  };
+  Object.assign(Q,defs[p]);
+  // Sync controls
+  el('f-ym').value=Q.ym; el('f-yr').value=Q.yr; el('f-from').value=Q.from||earliest; el('f-to').value=Q.to||latest;
+  el('f-per').value=Q.per; el('f-mo').value=Q.mo||'all'; el('f-qr').value=Q.qr||'all';
+  el('f-com').value=Q.com; el('f-ctr').value=Q.ctr; el('f-rgn').value=Q.rgn;
+  el('seg-flow').querySelectorAll('button').forEach(b=>{b.className=b.dataset.v===Q.flow?'on-'+{export:'exp',import:'imp',balance:'bal'}[Q.flow]:'';});
+  el('seg-view').querySelectorAll('button').forEach(b=>{b.className=b.dataset.v===Q.view?'on':'';});
+  syncVisibility(); run();
 }
 
-/* ============ RUN QUERY ============ */
+/* ══════════════════════════════════════════════════════
+   QUERY ENGINE  (direct data access — fully working)
+══════════════════════════════════════════════════════ */
+function yearsInScope(){
+  const all=allYears();
+  if(Q.ym==='single') return [Q.yr];
+  if(Q.ym==='all') return all;
+  return all.filter(y=>Number(y)>=Number(Q.from)&&Number(y)<=Number(Q.to));
+}
+
 function run(){
-  sortState = {col:null, dir:'desc'};
-  lastResult = TRADE.query(DB.normalized, {...Q});
-  renderKPIs();
-  renderOutput();
-  document.getElementById('cc-title').textContent = lastResult ? lastResult.title : '—';
-}
+  sortS={col:null,dir:'desc'};
+  const res = buildResult();
+  lastRows = res.rows;
+  lastIsBalance = res.isBalance||false;
 
-function annualRow(y){ return DB.annual.find(r=>String(r.y)===String(y)); }
+  el('cc-title').textContent = res.title;
+  el('cc-sub').textContent   = res.sub||'';
+  el('layer-lbl').textContent = res.layer||'';
+  el('warn-slot').innerHTML  = res.warn?`<div class="warn-bar">⚠ ${esc(res.warn)}</div>`:'';
 
-function renderKPIs(){
-  const y = Q.yearMode==='single' ? Q.year : dbYears()[0];
-  const row = annualRow(y);
-  const prev = annualRow(String(Number(y)-1));
-  let exp=0, imp=0;
-  if(row){ exp=row.e; imp=row.i; }
-  const bal = exp-imp;
-  let yoyTxt='—', yoyCls='';
-  if(prev){
-    const cur = Q.flow==='import'?imp : Q.flow==='balance'?bal : exp;
-    const pre = Q.flow==='import'?prev.i : Q.flow==='balance'?(prev.e-prev.i) : prev.e;
-    if(pre!==0){
-      const ch=((cur-pre)/Math.abs(pre))*100;
-      yoyTxt=(ch>=0?'▲ +':'▼ ')+ch.toFixed(1)+'%';
-      yoyCls=ch>=0?'pos':'neg';
-    }
-  }
-  const flowLbl = Q.flow==='import'?'الواردات':Q.flow==='balance'?'الميزان':'الصادرات';
-  document.getElementById('kpis').innerHTML = `
-    <div class="kpi exp"><div class="kpi-lbl">إجمالي الصادرات ${y}</div>
-      <div class="kpi-val">${fmt(exp)}</div><div class="kpi-sub">ألف دولار: ${exp.toLocaleString()}</div></div>
-    <div class="kpi imp"><div class="kpi-lbl">إجمالي الواردات ${y}</div>
-      <div class="kpi-val">${fmt(imp)}</div><div class="kpi-sub">ألف دولار: ${imp.toLocaleString()}</div></div>
-    <div class="kpi bal"><div class="kpi-lbl">الميزان التجاري ${y}</div>
-      <div class="kpi-val ${bal<0?'neg':'pos'}">${fmt(bal)}</div>
-      <div class="kpi-sub">${bal<0?'عجز تجاري':'فائض تجاري'}</div></div>
-    <div class="kpi yoy"><div class="kpi-lbl">تغير ${flowLbl} السنوي</div>
-      <div class="kpi-val ${yoyCls}">${yoyTxt}</div>
-      <div class="kpi-sub">${prev?('مقارنة بعام '+(Number(y)-1)):'لا توجد سنة سابقة'}</div></div>`;
-}
-
-/* ============ RENDER OUTPUT ============ */
-function renderOutput(){
-  const warnSlot = document.getElementById('warn-slot');
-  warnSlot.innerHTML = '';
-  if(lastResult && lastResult.warning){
-    warnSlot.innerHTML = `<div class="warn-box">⚠ ${lastResult.warning}</div>`;
-  }
-  document.getElementById('layer-note').textContent =
-    lastResult ? ('طبقة البيانات: '+(lastResult.periodLayerLabel||'—')) : '';
-  renderChart();
+  const vt = el('vtog').querySelector('.on')?.dataset.v||'bar';
+  renderChart(vt);
   renderTable();
+  renderKPIs();
+  refreshDBSection();
 }
 
-function chartHasData(){ return lastResult && lastResult.rows && lastResult.rows.length; }
+function buildResult(){
+  const {flow,view,per,ym,yr,mo,qr,com,ctr,rgn}=Q;
+  const scoped = yearsInScope();
 
-function renderChart(){
-  if(chartObj){ chartObj.destroy(); chartObj=null; }
-  const ctx = document.getElementById('chart');
-  if(!chartHasData()){
-    ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
-    return;
+  /* ── BALANCE ── */
+  if(flow==='balance'){
+    const rows=[], allA=DB.annual||[];
+    const relevant = ym==='single'?allA.filter(r=>String(r.y)===String(yr))
+                    :ym==='all'?allA
+                    :allA.filter(r=>Number(r.y)>=Number(Q.from)&&Number(r.y)<=Number(Q.to));
+    relevant.sort((a,b)=>Number(a.y)-Number(b.y)).forEach(r=>{
+      rows.push({lb:String(r.y),e:r.e||0,i:r.i||0,b:(r.e||0)-(r.i||0),type:'bal'});
+    });
+    return{title:'الميزان التجاري السنوي',layer:'البيانات السنوية الإجمالية',rows,isBalance:true,
+           sub:`${rows[0]?.lb||''}–${rows[rows.length-1]?.lb||''}`};
   }
-  const r = lastResult;
-  let cfg;
-  if(r.isBalance){
-    cfg = {
-      type: chartMode==='line'?'line':'bar',
-      data:{ labels:r.labels, datasets:[
-        {label:'الصادرات',data:r.data,backgroundColor:'#0a7c4e',borderColor:'#0a7c4e',borderRadius:4,tension:.35,fill:false},
-        {label:'الواردات',data:r.data2,backgroundColor:'#b91c1c',borderColor:'#b91c1c',borderRadius:4,tension:.35,fill:false},
-        {label:'الميزان',type:'line',data:r.rows.map(x=>x.b),borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,.08)',tension:.35,fill:true}
-      ]},
-      options:baseOpts(true)
-    };
-  } else if(chartMode==='pie'){
-    cfg = {
-      type:'doughnut',
-      data:{ labels:r.labels, datasets:[{data:r.data,
-        backgroundColor:r.labels.map((_,i)=>PALETTE[i%PALETTE.length]),
-        borderColor:'#fff',borderWidth:2,hoverOffset:10}]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic',size:11},padding:10}},
-          tooltip:tooltipCfg()}}
-    };
-  } else {
-    const color = Q.flow==='import'?'#b91c1c':'#0a7c4e';
-    cfg = {
-      type: chartMode==='line'?'line':'bar',
-      data:{ labels:r.labels, datasets:[{
-        label:r.title, data:r.data,
-        backgroundColor: chartMode==='line'?'rgba(10,124,78,.08)':r.labels.map((_,i)=>PALETTE[i%PALETTE.length]),
-        borderColor: color, borderWidth: chartMode==='line'?2.5:0,
-        borderRadius:4, tension:.35, fill:chartMode==='line'
-      }]},
-      options:baseOpts(false)
-    };
-    if(chartMode!=='line' && Q.view!=='commodity' && Q.view!=='country'){
-      cfg.data.datasets[0].backgroundColor = color;
+
+  const isExp=flow==='export';
+  const comKey=isExp?'exp_com':'imp_com';
+  const ctrKey=isExp?'exp_ctr':'imp_ctr';
+  const monKey=isExp?'monthly_e':'monthly_i';
+  const qtrKey=isExp?'quarterly_e':'quarterly_i';
+
+  /* ── TIME VIEW ── */
+  if(view==='time'){
+    if(ym==='single'){
+      const yd=yrDat(yr);
+      if(per==='monthly'){
+        const src=yd[monKey]||[];
+        const mFilter=mo==='all'?src.map((_,i)=>i):[Number(mo)-1];
+        const rows=mFilter.map(i=>({lb:MN[i],v:src[i]||0,type:'single'}));
+        return{title:`${isExp?'الصادرات':'الواردات'} ${yr} — شهرياً`,
+               layer:'البيانات الشهرية',sub:yr,rows};
+      }
+      if(per==='quarterly'){
+        const src=yd[qtrKey]||[];
+        const qFilter=qr==='all'?src.map((_,i)=>i):[Number(qr)-1];
+        const rows=qFilter.map(i=>({lb:QN[i],v:src[i]||0,type:'single'}));
+        return{title:`${isExp?'الصادرات':'الواردات'} ${yr} — ربع سنوي`,
+               layer:'البيانات الفصلية',sub:yr,rows};
+      }
+      // annual single
+      const row=annRow(yr);
+      const v=row?(isExp?row.e:row.i):0;
+      return{title:`${isExp?'الصادرات':'الواردات'} الإجمالية ${yr}`,layer:'الإجمالي السنوي',sub:yr,
+             rows:[{lb:yr,v,type:'single'}]};
     }
+    // multi-year annual trend
+    const rows=scoped.slice().reverse().map(y=>{
+      const r=annRow(y);
+      return{lb:y,v:r?(isExp?r.e:r.i):0,type:'single'};
+    });
+    return{title:`${isExp?'الصادرات':'الواردات'} — اتجاه سنوي`,layer:'البيانات السنوية',rows};
   }
-  chartObj = new Chart(ctx, cfg);
+
+  /* ── COMMODITY VIEW ── */
+  if(view==='commodity'){
+    if(ym==='single'){
+      const yd=yrDat(yr);
+      const src=yd[comKey]||[];
+
+      // Specific commodity selected → show its time breakdown
+      if(com!=='all'){
+        const found=src.find(c=>c.n===com);
+        if(per==='monthly'&&found?.mon){
+          const mFilter=mo==='all'?found.mon.map((_,i)=>i):[Number(mo)-1];
+          const rows=mFilter.map(i=>({lb:MN[i],v:found.mon[i]||0,type:'single'}));
+          return{title:`${esc(com)} — ${yr} شهرياً`,layer:'البيانات الشهرية للسلعة',sub:yr,rows};
+        }
+        if(per==='quarterly'&&found?.mon){
+          const qRows=QN.map((_,qi)=>({lb:QN[qi],v:(found.mon||[]).slice(qi*3,(qi+1)*3).reduce((s,v)=>s+v,0),type:'single'}));
+          const filtered=qr==='all'?qRows:[qRows[Number(qr)-1]];
+          return{title:`${esc(com)} — ${yr} ربع سنوي`,layer:'البيانات الفصلية للسلعة',sub:yr,rows:filtered.filter(Boolean)};
+        }
+        const v=found?.v||0;
+        return{title:`${esc(com)} — ${yr}`,layer:'القيمة السنوية',sub:yr,
+               rows:[{lb:com,v,type:'commodity',rank:1,p:'100.0'}]};
+      }
+
+      // All commodities annual
+      const total=src.reduce((s,c)=>s+(c.v||0),0);
+      const rows=src.slice().sort((a,b)=>(b.v||0)-(a.v||0))
+        .map((c,i)=>({lb:c.n,v:c.v||0,type:'commodity',rank:i+1,p:pct(c.v,total)}));
+      return{title:`${isExp?'الصادرات':'الواردات'} حسب السلعة — ${yr}`,
+             layer:'البيانات السنوية التراكمية',sub:`${rows.length} سلعة`,rows};
+    }
+
+    // Multi-year: aggregate across years by commodity
+    const map=new Map();
+    scoped.forEach(y=>{
+      const src=yrDat(y)[comKey]||[];
+      src.forEach(c=>{
+        if(!map.has(c.n)) map.set(c.n,0);
+        map.set(c.n,map.get(c.n)+(c.v||0));
+      });
+    });
+    const total=[...map.values()].reduce((s,v)=>s+v,0);
+    const rows=[...map.entries()].sort((a,b)=>b[1]-a[1])
+      .map(([n,v],i)=>({lb:n,v,type:'commodity',rank:i+1,p:pct(v,total)}));
+    const label=Q.ym==='all'?'كل السنوات':`${Q.from}–${Q.to}`;
+    return{title:`${isExp?'الصادرات':'الواردات'} حسب السلعة — ${label}`,
+           layer:'مجمّع عبر السنوات المختارة',sub:`${scoped.length} سنة`,rows};
+  }
+
+  /* ── COUNTRY VIEW ── */
+  if(view==='country'){
+    if(ym==='single'){
+      let src=yrDat(yr)[ctrKey]||[];
+      if(ctr!=='all') src=src.filter(c=>c.n===ctr);
+      if(rgn!=='all') src=src.filter(c=>c.r===rgn);
+      const total=src.reduce((s,c)=>s+(c.v||0),0);
+      const rows=src.slice().sort((a,b)=>(b.v||0)-(a.v||0))
+        .map((c,i)=>({lb:c.n,v:c.v||0,r:c.r||'',type:'country',rank:i+1,pct:pct(c.v,total)}));
+      const label=ctr!=='all'?ctr:(rgn!=='all'?`منطقة ${rgn}`:'كل الدول');
+      return{title:`${isExp?'أهم وجهات التصدير':'أهم مصادر الاستيراد'} — ${yr}`,
+             layer:'البيانات السنوية للشركاء التجاريين',sub:`${label} · ${rows.length} دولة`,rows};
+    }
+
+    // Multi-year aggregate
+    const map=new Map();
+    const rMap=new Map();
+    scoped.forEach(y=>{
+      let src=yrDat(y)[ctrKey]||[];
+      if(rgn!=='all') src=src.filter(c=>c.r===rgn);
+      src.forEach(c=>{
+        if(!map.has(c.n)) map.set(c.n,0);
+        map.set(c.n,map.get(c.n)+(c.v||0));
+        if(c.r) rMap.set(c.n,c.r);
+      });
+    });
+    const total=[...map.values()].reduce((s,v)=>s+v,0);
+    const rows=[...map.entries()].sort((a,b)=>b[1]-a[1])
+      .map(([n,v],i)=>({lb:n,v,r:rMap.get(n)||'',type:'country',rank:i+1,pct:pct(v,total)}));
+    const label=Q.ym==='all'?'كل السنوات':`${Q.from}–${Q.to}`;
+    return{title:`${isExp?'الصادرات':'الواردات'} حسب الدولة — ${label}`,
+           layer:'مجمّع عبر السنوات المختارة',sub:`${rows.length} دولة`,rows};
+  }
+
+  return{title:'—',rows:[],layer:''};
+}
+
+/* ══════════════════════════════════════════════════════
+   KPIs
+══════════════════════════════════════════════════════ */
+function renderKPIs(){
+  const y = Q.ym==='single'?Q.yr:allYears()[0];
+  const cur=annRow(y), prev=annRow(String(Number(y)-1));
+  const exp=cur?.e||0, imp=cur?.i||0, bal=exp-imp;
+  const refCur = Q.flow==='import'?imp:Q.flow==='balance'?bal:exp;
+  const refPrev = prev?(Q.flow==='import'?prev.i:Q.flow==='balance'?(prev.e-prev.i):prev.e):null;
+  let yoyHTML='—', yoyCls='';
+  if(refPrev!=null&&refPrev!==0){
+    const ch=((refCur-refPrev)/Math.abs(refPrev))*100;
+    yoyHTML=`<span style="font-size:14px">${ch>=0?'▲':'▼'}</span> ${Math.abs(ch).toFixed(1)}%`;
+    yoyCls=ch>=0?'pos':'neg';
+  }
+  el('kpis').innerHTML=`
+    <div class="kpi kpi-exp">
+      <div class="kpi-lbl">إجمالي الصادرات ${y}</div>
+      <div class="kpi-val">${fmt(exp)}</div>
+      <div class="kpi-sub">${exp.toLocaleString()} ألف دولار</div>
+    </div>
+    <div class="kpi kpi-imp">
+      <div class="kpi-lbl">إجمالي الواردات ${y}</div>
+      <div class="kpi-val">${fmt(imp)}</div>
+      <div class="kpi-sub">${imp.toLocaleString()} ألف دولار</div>
+    </div>
+    <div class="kpi kpi-bal">
+      <div class="kpi-lbl">الميزان التجاري ${y}</div>
+      <div class="kpi-val ${bal<0?'neg':'pos'}">${fmt(bal)}</div>
+      <div class="kpi-sub">${bal<0?'عجز تجاري 🔴':'فائض تجاري 🟢'}</div>
+    </div>
+    <div class="kpi kpi-yoy">
+      <div class="kpi-lbl">التغيير السنوي — ${Q.flow==='import'?'الواردات':Q.flow==='balance'?'الميزان':'الصادرات'}</div>
+      <div class="kpi-val ${yoyCls}">${yoyHTML}</div>
+      <div class="kpi-sub">${prev?('مقارنة بعام '+(Number(y)-1)):'لا يوجد عام سابق في القاعدة'}</div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   CHART
+══════════════════════════════════════════════════════ */
+function renderChart(mode){
+  if(chartObj){chartObj.destroy();chartObj=null;}
+  const canvas=el('chart'), empty=el('chart-empty');
+  const rows=lastRows;
+
+  if(!rows||!rows.length){
+    canvas.style.display='none'; empty.style.display='flex'; return;
+  }
+  canvas.style.display=''; empty.style.display='none';
+  if(mode==='table') return; // table mode — no chart needed
+
+  const labels=rows.map(r=>r.lb);
+  const vals=lastIsBalance?rows.map(r=>r.e):rows.map(r=>r.v);
+  const vals2=lastIsBalance?rows.map(r=>r.i):[];
+  const vals3=lastIsBalance?rows.map(r=>r.b):[];
+  const clr=Q.flow==='import'?'#b91c1c':Q.flow==='balance'?'#1d4ed8':'#0a7c4e';
+
+  let cfg;
+  if(lastIsBalance){
+    cfg={type:mode==='line'?'line':'bar',
+      data:{labels,datasets:[
+        {label:'الصادرات',data:vals,backgroundColor:'rgba(10,124,78,.7)',borderColor:'#0a7c4e',borderWidth:mode==='line'?2.5:0,borderRadius:4,tension:.35,fill:false,pointRadius:3},
+        {label:'الواردات',data:vals2,backgroundColor:'rgba(185,28,28,.7)',borderColor:'#b91c1c',borderWidth:mode==='line'?2.5:0,borderRadius:4,tension:.35,fill:false,pointRadius:3},
+        {label:'الميزان',type:'line',data:vals3,borderColor:'#1d4ed8',backgroundColor:'rgba(29,78,216,.06)',borderWidth:2,tension:.35,fill:true,pointRadius:3}
+      ]},
+      options:baseOpts(true)};
+  } else if(mode==='pie'){
+    cfg={type:'doughnut',
+      data:{labels,datasets:[{data:vals,backgroundColor:labels.map((_,i)=>PAL[i%PAL.length]),borderColor:'#fff',borderWidth:2.5,hoverOffset:12}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic',size:11},padding:12}},tooltip:tooltipCfg()}}};
+  } else {
+    const multiColor=(rows[0]?.type==='commodity'||rows[0]?.type==='country');
+    cfg={type:mode==='line'?'line':'bar',
+      data:{labels,datasets:[{label:el('cc-title').textContent,data:vals,
+        backgroundColor:mode==='line'?'rgba(10,124,78,.08)':(multiColor?labels.map((_,i)=>PAL[i%PAL.length]):clr),
+        borderColor:clr,borderWidth:mode==='line'?2.5:0,borderRadius:4,tension:.35,fill:mode==='line',pointRadius:3,pointBackgroundColor:clr}]},
+      options:baseOpts(false)};
+  }
+  chartObj=new Chart(canvas,cfg);
 }
 
 function tooltipCfg(){
-  return { callbacks:{ label:c=>{
-    const v = c.parsed.y!==undefined?c.parsed.y:c.parsed;
-    return (c.dataset.label?c.dataset.label+': ':'')+fmt(v);
-  }}, bodyFont:{family:'IBM Plex Sans Arabic'}, titleFont:{family:'IBM Plex Sans Arabic'} };
+  return{callbacks:{label:c=>{const v=c.parsed?.y??c.parsed;return (c.dataset.label?c.dataset.label+': ':'')+fmt(v);}},
+    bodyFont:{family:'IBM Plex Sans Arabic'},titleFont:{family:'IBM Plex Sans Arabic'},
+    backgroundColor:'rgba(15,23,42,.9)',padding:10};
 }
-
 function baseOpts(legend){
-  return {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{
-      legend:{display:legend,position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic',size:11}}},
-      tooltip:tooltipCfg()
-    },
-    scales:{
-      x:{ticks:{font:{family:'IBM Plex Sans Arabic',size:11}},grid:{display:false}},
-      y:{ticks:{font:{family:'IBM Plex Sans Arabic',size:10},callback:v=>fmt(v)},grid:{color:'#eef1f6'}}
-    }
-  };
+  return{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:legend,position:'bottom',labels:{font:{family:'IBM Plex Sans Arabic',size:11},padding:12}},tooltip:tooltipCfg()},
+    scales:{x:{ticks:{font:{family:'IBM Plex Sans Arabic',size:11},maxRotation:40},grid:{display:false}},
+      y:{ticks:{font:{family:'IBM Plex Sans Arabic',size:10},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}}}};
 }
 
-/* ============ TABLE ============ */
-function regionBadge(r){
-  if(!r||!REGION_COLORS[r]) return r? `<span class="badge" style="background:#e5e7eb;color:#374151">${r}</span>`:'';
-  const [bg,fg]=REGION_COLORS[r];
-  return `<span class="badge" style="background:${bg};color:${fg}">${r}</span>`;
+/* ══════════════════════════════════════════════════════
+   TABLE
+══════════════════════════════════════════════════════ */
+function badge(r){
+  if(!r) return '';
+  const [bg,fg]=RBDG[r]||['#e5e7eb','#374151'];
+  return `<span class="badge" style="background:${bg};color:${fg}">${esc(r)}</span>`;
 }
 
 function renderTable(){
-  const host = document.getElementById('tbl-scroll');
-  if(!chartHasData()){
-    host.innerHTML = '<div class="empty-state">لا توجد بيانات مطابقة</div>';
-    return;
+  const host=el('tbl-body');
+  if(!lastRows.length){
+    host.innerHTML='<div class="empty">لا توجد بيانات مطابقة للفلاتر المختارة</div>'; return;
   }
-  const r = lastResult;
-  let rows = [...r.rows];
-  // sorting
-  if(sortState.col!==null){
+  let rows=[...lastRows];
+  if(sortS.col!==null){
     rows.sort((a,b)=>{
-      let va=sortVal(a,sortState.col), vb=sortVal(b,sortState.col);
-      if(typeof va==='string') return sortState.dir==='asc'?va.localeCompare(vb,'ar'):vb.localeCompare(va,'ar');
-      return sortState.dir==='asc'?va-vb:vb-va;
+      const va=cellVal(a,sortS.col), vb=cellVal(b,sortS.col);
+      const cmp=typeof va==='string'?va.localeCompare(vb,'ar'):va-vb;
+      return sortS.dir==='asc'?cmp:-cmp;
     });
   }
-  const maxV = Math.max(...rows.map(x=>Math.abs(r.isBalance?x.b:x.v)),1);
+  const maxV=Math.max(...rows.map(r=>Math.abs(lastIsBalance?Math.max(r.e||0,r.i||0,Math.abs(r.b||0)):r.v||0)),1);
+  const fillCls=Q.flow==='import'?'bar-imp':Q.flow==='balance'?'bar-bal':'bar-exp';
 
   let html='<table><thead><tr>';
   let cols;
-  if(r.isBalance){
+  if(lastIsBalance){
     cols=['الفترة','الصادرات','الواردات','الميزان'];
-  } else if(r.rows[0] && r.rows[0].type==='commodity'){
-    cols=['#','السلعة','القيمة','النسبة %','شريط'];
-  } else if(r.rows[0] && r.rows[0].type==='country'){
-    cols=['#','الدولة','المنطقة','القيمة','الحصة %','شريط'];
+  } else if(rows[0]?.type==='commodity'){
+    cols=['#','السلعة','القيمة (ألف $)','الحصة %','التوزيع'];
+  } else if(rows[0]?.type==='country'){
+    cols=['#','الدولة','المنطقة','القيمة (ألف $)','الحصة %','التوزيع'];
   } else {
-    cols=['الفترة','القيمة','التوزيع'];
+    cols=['الفترة','القيمة (ألف $)','التوزيع'];
   }
   cols.forEach((c,i)=>{
-    const ar = sortState.col===i ? `<span class="sort-ar">${sortState.dir==='asc'?'▲':'▼'}</span>` : '';
-    html+=`<th onclick="sortBy(${i})">${c}${ar}</th>`;
+    const arr=sortS.col===i?`<span class="si">${sortS.dir==='asc'?'▲':'▼'}</span>`:'';
+    html+=`<th onclick="sortBy(${i})">${c}${arr}</th>`;
   });
   html+='</tr></thead><tbody>';
 
-  rows.forEach((x,idx)=>{
-    if(r.isBalance){
-      html+=`<tr><td>${x.lb}</td>
-        <td class="num pos">${fmt(x.e)}</td>
-        <td class="num neg">${fmt(x.i)}</td>
-        <td class="num ${x.b<0?'neg':'pos'}">${fmt(x.b)}</td></tr>`;
-    } else if(x.type==='commodity'){
-      const w=(Math.abs(x.v)/maxV*100).toFixed(1);
-      html+=`<tr><td>${x.rank}</td><td>${x.lb}</td>
-        <td class="num">${fmt(x.v)}</td><td>${x.p}%</td>
-        <td class="bar-cell"><div class="bar-track"><div class="bar-fill ${Q.flow==='import'?'imp':'exp'}" style="width:${w}%"></div></div></td></tr>`;
-    } else if(x.type==='country'){
-      const w=(Math.abs(x.v)/maxV*100).toFixed(1);
-      html+=`<tr><td>${x.rank}</td><td>${x.lb}</td><td>${regionBadge(x.r)}</td>
-        <td class="num">${fmt(x.v)}</td><td>${x.pct}%</td>
-        <td class="bar-cell"><div class="bar-track"><div class="bar-fill ${Q.flow==='import'?'imp':'exp'}" style="width:${w}%"></div></div></td></tr>`;
+  rows.forEach(r=>{
+    const w=(Math.abs(lastIsBalance?Math.max(r.e||0,r.i||0):r.v||0)/maxV*100).toFixed(0);
+    if(lastIsBalance){
+      html+=`<tr>
+        <td><b>${esc(r.lb)}</b></td>
+        <td class="num pos">${fmt(r.e)}</td>
+        <td class="num neg">${fmt(r.i)}</td>
+        <td class="num ${(r.b||0)<0?'neg':'pos'}">${fmt(r.b)}</td>
+      </tr>`;
+    } else if(r.type==='commodity'){
+      html+=`<tr>
+        <td class="rk">${r.rank}</td><td><b>${esc(r.lb)}</b></td>
+        <td class="num">${(r.v||0).toLocaleString()}</td>
+        <td>${r.p}%</td>
+        <td class="bar-wrap"><div class="bar-track"><div class="bar-fill ${fillCls}" style="width:${w}%"></div></div></td>
+      </tr>`;
+    } else if(r.type==='country'){
+      html+=`<tr>
+        <td class="rk">${r.rank}</td><td><b>${esc(r.lb)}</b></td>
+        <td>${badge(r.r)}</td>
+        <td class="num">${(r.v||0).toLocaleString()}</td>
+        <td>${r.pct}%</td>
+        <td class="bar-wrap"><div class="bar-track"><div class="bar-fill ${fillCls}" style="width:${w}%"></div></div></td>
+      </tr>`;
     } else {
-      const w=(Math.abs(x.v)/maxV*100).toFixed(1);
-      html+=`<tr><td>${x.lb}</td><td class="num">${fmt(x.v)}</td>
-        <td class="bar-cell"><div class="bar-track"><div class="bar-fill ${Q.flow==='import'?'imp':'exp'}" style="width:${w}%"></div></div></td></tr>`;
+      const bw=(Math.abs(r.v||0)/maxV*100).toFixed(0);
+      html+=`<tr>
+        <td><b>${esc(r.lb)}</b></td>
+        <td class="num">${(r.v||0).toLocaleString()}</td>
+        <td class="bar-wrap"><div class="bar-track"><div class="bar-fill ${fillCls}" style="width:${bw}%"></div></div></td>
+      </tr>`;
     }
   });
   html+='</tbody></table>';
-  host.innerHTML = html;
+  host.innerHTML=html;
 }
 
-function sortVal(x,col){
-  const r=lastResult;
-  if(r.isBalance){ return [x.lb,x.e,x.i,x.b][col]; }
-  if(x.type==='commodity'){ return [x.rank,x.lb,x.v,parseFloat(x.p)||0,x.v][col]; }
-  if(x.type==='country'){ return [x.rank,x.lb,x.r||'',x.v,parseFloat(x.pct)||0,x.v][col]; }
-  return [x.lb,x.v,x.v][col];
+function cellVal(r,col){
+  if(lastIsBalance) return [r.lb,r.e,r.i,r.b][col]??0;
+  if(r.type==='commodity') return [r.rank,r.lb,r.v,parseFloat(r.p)||0,r.v][col]??0;
+  if(r.type==='country')   return [r.rank,r.lb,r.r||'',r.v,parseFloat(r.pct)||0,r.v][col]??0;
+  return [r.lb,r.v,r.v][col]??0;
 }
 function sortBy(col){
-  if(sortState.col===col){ sortState.dir = sortState.dir==='asc'?'desc':'asc'; }
-  else { sortState.col=col; sortState.dir='desc'; }
+  if(sortS.col===col) sortS.dir=sortS.dir==='asc'?'desc':'asc';
+  else {sortS.col=col;sortS.dir='desc';}
   renderTable();
 }
 function toggleTable(){
-  tableVisible=!tableVisible;
-  document.getElementById('tbl-scroll').style.display = tableVisible?'':'none';
-  document.getElementById('tbl-toggle-btn').textContent = tableVisible?'إخفاء الجدول':'إظهار الجدول';
+  tableHidden=!tableHidden;
+  el('tbl-body').style.display=tableHidden?'none':'';
+  el('tbl-tog-btn').textContent=tableHidden?'إظهار':'إخفاء';
 }
 
-/* ============ DB SECTION ============ */
-function toggleDB(){
-  const b=document.getElementById('db-body');
-  b.classList.toggle('hidden');
-  document.getElementById('db-arr').textContent = b.classList.contains('hidden')?'▶':'▼';
-}
-function renderDBSection(){
-  const years = dbYears();
-  let records=0;
-  years.forEach(y=>{
-    const yd=DB.years[y]||{};
-    records += (yd.exp_com||[]).length+(yd.imp_com||[]).length+(yd.exp_ctr||[]).length+(yd.imp_ctr||[]).length;
-  });
-  document.getElementById('db-years').textContent = years.length;
-  document.getElementById('db-records').textContent = records;
-  const srcs = DB.sources||[];
-  const lastUpd = srcs.length ? srcs.map(s=>s.added).filter(Boolean).sort().pop() : '—';
-  document.getElementById('db-update').textContent = 'آخر تحديث: '+(lastUpd||'—');
-  document.getElementById('year-chips').innerHTML = years.map(y=>
-    `<span class="ychip ${y===Q.year&&Q.yearMode==='single'?'on':''}" onclick="pickYear('${y}')">${y}</span>`).join('');
-}
-function pickYear(y){
-  Q.yearMode='single'; Q.year=y;
-  document.getElementById('f-yearMode').value='single';
-  document.getElementById('f-year').value=y;
-  syncFilterVisibility(); run(); renderDBSection();
+/* ══════════════════════════════════════════════════════
+   DB SECTION
+══════════════════════════════════════════════════════ */
+function refreshDBSection(){
+  const yrs=allYears();
+  let rec=0;
+  yrs.forEach(y=>{const d=yrDat(y);rec+=(d.exp_com||[]).length+(d.imp_com||[]).length+(d.exp_ctr||[]).length+(d.imp_ctr||[]).length;});
+  el('db-yrs').textContent=yrs.length;
+  el('db-rec').textContent=rec;
+  const srcs=DB.sources||[];
+  const last=srcs.map(s=>s.added).filter(Boolean).sort().pop();
+  el('db-upd').textContent=last?last.slice(0,7):'—';
+  el('ychips').innerHTML=yrs.map(y=>`<span class="ychip ${Q.ym==='single'&&y===Q.yr?'on':''}" onclick="pickYr('${y}')">${y}</span>`).join('');
 }
 
-/* ============ EXPORT ============ */
-function downloadFile(name,content,type){
-  const blob=new Blob([content],{type});
+function pickYr(y){
+  Q.ym='single';Q.yr=y;
+  el('f-ym').value='single'; el('f-yr').value=y;
+  syncVisibility(); run();
+}
+
+/* ══════════════════════════════════════════════════════
+   EXPORT
+══════════════════════════════════════════════════════ */
+function dlFile(name,content,type){
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob); a.download=name; a.click();
-  URL.revokeObjectURL(a.href);
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
 }
-function exportJSON(){
-  downloadFile('trade-backup-'+Date.now()+'.json', JSON.stringify(DB,null,2), 'application/json');
+function doExportJSON(){
+  dlFile('trade-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(DB,null,2),'application/json');
 }
-function exportCSV(){
+function doExportCSV(){
   const lines=['year,type,commodity_name,commodity_value_kusd,country_name,country_value_kusd,region'];
-  dbYears().forEach(y=>{
-    const yd=DB.years[y]||{};
+  allYears().forEach(y=>{
+    const d=yrDat(y);
     [['exp','exp_com','exp_ctr'],['imp','imp_com','imp_ctr']].forEach(([t,ck,ctk])=>{
-      (yd[ck]||[]).forEach(c=>lines.push([y,t,csvCell(c.n),c.v,'','',''].join(',')));
-      (yd[ctk]||[]).forEach(c=>lines.push([y,t,'','',csvCell(c.n),c.v,csvCell(c.r||'')].join(',')));
+      (d[ck]||[]).forEach(c=>lines.push([y,t,c.n,c.v,'','',''].join(',')));
+      (d[ctk]||[]).forEach(c=>lines.push([y,t,'','',c.n,c.v,(c.r||'')].join(',')));
     });
   });
-  downloadFile('trade-export-'+Date.now()+'.csv', '﻿'+lines.join('\n'), 'text/csv');
+  dlFile('trade-'+new Date().toISOString().slice(0,10)+'.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
 }
-function csvCell(v){ v=String(v??''); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
-
-/* ============ ADMIN ============ */
-function openAdmin(){ document.getElementById('admin-modal').classList.add('show'); }
-function closeAdmin(){ document.getElementById('admin-modal').classList.remove('show'); }
-function doLogin(){
-  const p=document.getElementById('admin-pass').value;
-  if(p==='cbos2025'){
-    document.getElementById('login-view').style.display='none';
-    document.getElementById('admin-view').style.display='';
-  } else {
-    document.getElementById('login-msg').innerHTML='<div class="msg err">كلمة المرور غير صحيحة</div>';
-  }
+function dlTemplate(){
+  const lines=[
+    'year,type,commodity_name,commodity_value_kusd,country_name,country_value_kusd,region',
+    '2026,exp,الذهب,1500000,,,','2026,exp,,,الإمارات,900000,عربي',
+    '2026,imp,مواد غذائية,1800000,,,','2026,imp,,,الصين,1600000,آسيا'
+  ];
+  dlFile('trade-template.csv','﻿'+lines.join('\r\n'),'text/csv;charset=utf-8');
 }
 
-/* upsert helpers */
-function ensureYear(y){
-  if(!DB.years[y]) DB.years[y]={exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[]};
-  const yd=DB.years[y];
-  yd.exp_com=yd.exp_com||[]; yd.imp_com=yd.imp_com||[];
-  yd.exp_ctr=yd.exp_ctr||[]; yd.imp_ctr=yd.imp_ctr||[];
-  return yd;
+/* ══════════════════════════════════════════════════════
+   DB HELPERS
+══════════════════════════════════════════════════════ */
+function ensureYr(y){
+  if(!DB.years[y]) DB.years[y]={exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[],monthly_e:[],monthly_i:[],quarterly_e:[],quarterly_i:[]};
+  const d=DB.years[y];
+  ['exp_com','imp_com','exp_ctr','imp_ctr'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[];});
+  return d;
 }
-function upsert(arr,name,val,region){
-  const ex=arr.find(r=>r.n===name);
-  if(ex){ ex.v=val; if(region)ex.r=region; }
-  else { const o={n:name,v:val}; if(region)o.r=region; arr.push(o); }
+function upsert(arr,n,v,r){
+  const ex=arr.find(x=>x.n===n);
+  if(ex){ex.v=v;if(r!==undefined)ex.r=r;}
+  else{const o={n,v};if(r!==undefined)o.r=r;arr.push(o);}
 }
 function rebuildAnnual(y){
-  const yd=DB.years[y];
-  const e=(yd.exp_com||[]).reduce((s,r)=>s+(r.v||0),0);
-  const i=(yd.imp_com||[]).reduce((s,r)=>s+(r.v||0),0);
-  if(e||i){
-    const row=annualRow(y);
-    if(row){ if(e)row.e=e; if(i)row.i=i; }
-    else { DB.annual.push({y,e,i}); DB.annual.sort((a,b)=>Number(a.y)-Number(b.y)); }
-  }
+  const d=DB.years[y]||{};
+  const e=(d.exp_com||[]).reduce((s,c)=>s+(c.v||0),0);
+  const i=(d.imp_com||[]).reduce((s,c)=>s+(c.v||0),0);
+  if(!e&&!i) return;
+  const row=annRow(y);
+  if(row){if(e)row.e=e;if(i)row.i=i;}
+  else{DB.annual=DB.annual||[];DB.annual.push({y,e,i});DB.annual.sort((a,b)=>Number(a.y)-Number(b.y));}
 }
 function persistAndRefresh(){
-  TRADE.saveDatabase(DB, SEED);
-  DB = TRADE.loadDatabase(SEED);
-  populateSelects();
-  // restore current Q selections where possible
-  document.getElementById('f-yearMode').value=Q.yearMode;
-  if([...document.getElementById('f-year').options].some(o=>o.value===Q.year))
-    document.getElementById('f-year').value=Q.year;
-  else Q.year=dbYears()[0];
-  syncFilterVisibility(); run(); renderDBSection();
+  SVC.saveDatabase(DB,SEED);
+  DB=SVC.loadDatabase(SEED);
+  buildYearSelects(); buildComCtrSelects();
+  el('f-ym').value=Q.ym; el('f-yr').value=Q.yr;
+  syncVisibility(); run();
 }
 
-/* CSV import */
-let csvParsed=null;
-function parseCSV(text){
-  const rows=[];
-  let i=0,field='',row=[],inQ=false;
+/* ══════════════════════════════════════════════════════
+   ADMIN
+══════════════════════════════════════════════════════ */
+function openAdmin(){el('admin-modal').classList.add('show');}
+function closeAdmin(){el('admin-modal').classList.remove('show');}
+function doLogin(){
+  if(el('ap').value==='cbos2025'){
+    el('v-login').style.display='none'; el('v-admin').style.display='';
+  } else {
+    el('lmsg').innerHTML='<div class="msg err">كلمة المرور غير صحيحة</div>';
+  }
+}
+
+// Admin tabs
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+    b.closest('.tabs').querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+    el('pane-'+b.dataset.t).classList.add('on');
+  });
+  // CSV drag-drop
+  const dz=el('csv-dz'), fi=el('csv-fi');
+  dz.onclick=e=>{if(e.target!==fi)fi.click();};
+  dz.ondragover=e=>{e.preventDefault();dz.classList.add('over');};
+  dz.ondragleave=()=>dz.classList.remove('over');
+  dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handleCSV(e.dataTransfer.files[0]);};
+  fi.onchange=e=>{if(e.target.files[0])handleCSV(e.target.files[0]);};
+});
+
+/* CSV */
+function parseCsvText(text){
+  const rows=[];let i=0,field='',row=[],inQ=false;
+  const push=()=>{row.push(field.trim());field='';};
   while(i<text.length){
     const c=text[i];
-    if(inQ){
-      if(c==='"'&&text[i+1]==='"'){field+='"';i+=2;continue;}
-      if(c==='"'){inQ=false;i++;continue;}
-      field+=c;i++;continue;
-    }
+    if(inQ){if(c==='"'&&text[i+1]==='"'){field+='"';i+=2;continue;}if(c==='"'){inQ=false;i++;continue;}field+=c;i++;continue;}
     if(c==='"'){inQ=true;i++;continue;}
-    if(c===','){row.push(field);field='';i++;continue;}
-    if(c==='\n'||c==='\r'){
-      if(c==='\r'&&text[i+1]==='\n')i++;
-      row.push(field);rows.push(row);row=[];field='';i++;continue;
-    }
+    if(c===','){push();i++;continue;}
+    if(c==='\r'&&text[i+1]==='\n'){push();rows.push(row);row=[];i+=2;continue;}
+    if(c==='\n'||c==='\r'){push();rows.push(row);row=[];i++;continue;}
     field+=c;i++;
   }
-  if(field.length||row.length){ row.push(field); rows.push(row); }
-  return rows.filter(r=>r.some(c=>c.trim()!==''));
+  push();if(row.some(c=>c))rows.push(row);
+  return rows.filter(r=>r.some(c=>c.trim()));
 }
-function handleCSVFile(file){
+
+function handleCSV(file){
   const reader=new FileReader();
   reader.onload=e=>{
     let text=e.target.result.replace(/^﻿/,'');
-    const rows=parseCSV(text);
-    if(rows.length<2){ csvMsg('err','الملف فارغ أو غير صالح'); return; }
-    const header=rows[0].map(h=>h.trim().toLowerCase());
-    const need=['year','type','commodity_name','commodity_value_kusd','country_name','country_value_kusd','region'];
-    const idx={}; need.forEach(n=>idx[n]=header.indexOf(n));
-    if(idx.year<0||idx.type<0){ csvMsg('err','أعمدة مفقودة: يجب توفر year و type على الأقل'); return; }
-    const data=rows.slice(1).map(r=>({
-      year:String(r[idx.year]||'').trim(),
-      type:String(r[idx.type]||'').trim().toLowerCase(),
-      commodity_name:idx.commodity_name>=0?String(r[idx.commodity_name]||'').trim():'',
-      commodity_value:idx.commodity_value_kusd>=0?parseFloat(r[idx.commodity_value_kusd])||0:0,
-      country_name:idx.country_name>=0?String(r[idx.country_name]||'').trim():'',
-      country_value:idx.country_value_kusd>=0?parseFloat(r[idx.country_value_kusd])||0:0,
-      region:idx.region>=0?String(r[idx.region]||'').trim():''
+    const rows=parseCsvText(text);
+    if(rows.length<2){setMsg('csv-msg','err','الملف فارغ أو غير صالح');return;}
+    const hdr=rows[0].map(h=>h.toLowerCase().trim());
+    const idx={year:hdr.indexOf('year'),type:hdr.indexOf('type'),cn:hdr.indexOf('commodity_name'),cv:hdr.indexOf('commodity_value_kusd'),dn:hdr.indexOf('country_name'),dv:hdr.indexOf('country_value_kusd'),rgn:hdr.indexOf('region')};
+    if(idx.year<0||idx.type<0){setMsg('csv-msg','err','أعمدة مفقودة: year و type مطلوبان');return;}
+    csvParsed=rows.slice(1).map(r=>({
+      year:String(r[idx.year]||'').trim(),type:String(r[idx.type]||'').trim().toLowerCase(),
+      cn:idx.cn>=0?String(r[idx.cn]||'').trim():'',cv:idx.cv>=0?parseFloat(r[idx.cv])||0:0,
+      dn:idx.dn>=0?String(r[idx.dn]||'').trim():'',dv:idx.dv>=0?parseFloat(r[idx.dv])||0:0,
+      rgn:idx.rgn>=0?String(r[idx.rgn]||'').trim():''
     })).filter(d=>d.year&&(d.type==='exp'||d.type==='imp'));
-    if(!data.length){ csvMsg('err','لا توجد صفوف صالحة (type يجب أن يكون exp أو imp)'); return; }
-    csvParsed=data;
-    let prev='<div class="preview-tbl"><table><thead><tr><th>السنة</th><th>النوع</th><th>السلعة</th><th>قيمة</th><th>الدولة</th><th>قيمة</th><th>منطقة</th></tr></thead><tbody>';
-    data.slice(0,5).forEach(d=>{
-      prev+=`<tr><td>${d.year}</td><td>${d.type}</td><td>${d.commodity_name}</td><td>${d.commodity_value}</td><td>${d.country_name}</td><td>${d.country_value}</td><td>${d.region}</td></tr>`;
-    });
-    prev+='</tbody></table></div>';
-    document.getElementById('csv-preview').innerHTML='<p class="hint">معاينة أول 5 صفوف (الإجمالي: '+data.length+' صف):</p>'+prev;
-    document.getElementById('csv-confirm-slot').innerHTML='<button class="btn btn-navy btn-sm" style="margin-top:10px" onclick="confirmCSV()">تأكيد الاستيراد</button>';
-    csvMsg('','');
+    if(!csvParsed.length){setMsg('csv-msg','err','لا توجد صفوف صالحة');return;}
+    let pvw='<div class="pvw"><table><thead><tr><th>السنة</th><th>النوع</th><th>السلعة</th><th>قيمة</th><th>الدولة</th><th>قيمة</th><th>المنطقة</th></tr></thead><tbody>';
+    csvParsed.slice(0,5).forEach(d=>pvw+=`<tr><td>${esc(d.year)}</td><td>${esc(d.type)}</td><td>${esc(d.cn)}</td><td>${d.cv}</td><td>${esc(d.dn)}</td><td>${d.dv}</td><td>${esc(d.rgn)}</td></tr>`);
+    pvw+='</tbody></table></div>';
+    el('csv-pvw').innerHTML=`<p class="hint" style="margin-top:10px">معاينة (${csvParsed.length} صف إجمالاً):</p>${pvw}`;
+    el('csv-confirm-btn').style.display='';
+    setMsg('csv-msg','','');
   };
-  reader.readAsText(file);
+  reader.readAsText(file,'UTF-8');
 }
 function confirmCSV(){
-  if(!csvParsed) return;
+  if(!csvParsed)return;
   csvParsed.forEach(d=>{
-    const yd=ensureYear(d.year);
-    const isExp=d.type==='exp';
-    if(d.commodity_name){
-      upsert(isExp?yd.exp_com:yd.imp_com, d.commodity_name, d.commodity_value);
-    }
-    if(d.country_name){
-      upsert(isExp?yd.exp_ctr:yd.imp_ctr, d.country_name, d.country_value, d.region||undefined);
-    }
+    const yd=ensureYr(d.year);
+    if(d.cn) upsert(d.type==='exp'?yd.exp_com:yd.imp_com,d.cn,d.cv);
+    if(d.dn) upsert(d.type==='exp'?yd.exp_ctr:yd.imp_ctr,d.dn,d.dv,d.rgn||undefined);
   });
   [...new Set(csvParsed.map(d=>d.year))].forEach(rebuildAnnual);
+  const n=csvParsed.length; csvParsed=null;
+  el('csv-pvw').innerHTML=''; el('csv-confirm-btn').style.display='none';
   persistAndRefresh();
-  csvMsg('ok','تم استيراد '+csvParsed.length+' صف بنجاح وتحديث قاعدة البيانات');
-  csvParsed=null;
-  document.getElementById('csv-preview').innerHTML='';
-  document.getElementById('csv-confirm-slot').innerHTML='';
-}
-function csvMsg(t,m){
-  document.getElementById('csv-msg').innerHTML = m?`<div class="msg ${t}">${m}</div>`:'';
-}
-function downloadTemplate(){
-  const tpl='year,type,commodity_name,commodity_value_kusd,country_name,country_value_kusd,region\n'+
-    '2026,exp,الذهب,1500000,,,\n'+
-    '2026,exp,,,الإمارات,900000,عربي\n'+
-    '2026,imp,مواد غذائية,1800000,,,\n'+
-    '2026,imp,,,الصين,1600000,آسيا\n';
-  downloadFile('trade-template.csv','﻿'+tpl,'text/csv');
+  setMsg('csv-msg','ok',`✅ تم استيراد ${n} صف وتحديث قاعدة البيانات`);
 }
 
-/* JSON import */
-function importJSON(){
-  const f=document.getElementById('json-file').files[0];
-  if(!f){ jsonMsg('err','اختر ملفاً أولاً'); return; }
+/* JSON */
+function doImportJSON(){
+  const f=el('json-fi').files[0];
+  if(!f){setMsg('json-msg','err','اختر ملفاً أولاً');return;}
   const reader=new FileReader();
   reader.onload=e=>{
     let obj;
-    try{ obj=JSON.parse(e.target.result); }
-    catch{ jsonMsg('err','ملف JSON غير صالح'); return; }
-    if(!obj || typeof obj!=='object' || !obj.years || !Array.isArray(obj.annual)){
-      jsonMsg('err','بنية غير صحيحة: يجب توفر annual (مصفوفة) و years (كائن)');
-      return;
-    }
-    const mode=document.getElementById('json-mode').value;
-    if(mode==='replace'){
-      DB.annual = obj.annual;
-      DB.years = obj.years;
-      DB.sources = obj.sources||DB.sources;
-    } else {
-      // merge
-      (obj.annual||[]).forEach(r=>{
-        const ex=DB.annual.find(x=>String(x.y)===String(r.y));
-        if(ex){ ex.e=r.e; ex.i=r.i; } else DB.annual.push(r);
-      });
+    try{obj=JSON.parse(e.target.result);}catch{setMsg('json-msg','err','ملف JSON غير صالح');return;}
+    if(!obj||!obj.years||!Array.isArray(obj.annual)){setMsg('json-msg','err','البنية غير صحيحة: يجب توفر annual و years');return;}
+    const mode=el('json-mode').value;
+    if(mode==='replace'){DB.annual=obj.annual;DB.years=obj.years;DB.sources=obj.sources||DB.sources;}
+    else{
+      (obj.annual||[]).forEach(r=>{const ex=DB.annual.find(x=>String(x.y)===String(r.y));if(ex){ex.e=r.e;ex.i=r.i;}else DB.annual.push(r);});
       DB.annual.sort((a,b)=>Number(a.y)-Number(b.y));
-      Object.keys(obj.years||{}).forEach(y=>{ DB.years[y]=obj.years[y]; });
+      Object.keys(obj.years||{}).forEach(y=>{DB.years[y]=obj.years[y];});
     }
     persistAndRefresh();
-    jsonMsg('ok','تم استيراد النسخة الاحتياطية بنجاح ('+mode+')');
+    setMsg('json-msg','ok','✅ تم الاستيراد بنجاح ('+mode+')');
   };
-  reader.readAsText(f);
+  reader.readAsText(f,'UTF-8');
 }
-function jsonMsg(t,m){ document.getElementById('json-msg').innerHTML=m?`<div class="msg ${t}">${m}</div>`:''; }
 
-/* Manual entry */
-function manualAddRow(){
-  const y=document.getElementById('m-year').value.trim();
-  const type=document.getElementById('m-type').value;
-  const com=document.getElementById('m-com').value.trim();
-  const comv=parseFloat(document.getElementById('m-comv').value)||0;
-  const ctr=document.getElementById('m-ctr').value.trim();
-  const ctrv=parseFloat(document.getElementById('m-ctrv').value)||0;
-  const region=document.getElementById('m-region').value;
-  if(!y || (!com && !ctr)){ manualMsg('err','أدخل السنة وسلعة أو دولة على الأقل'); return; }
-  manualRows.push({y,type,com,comv,ctr,ctrv,region});
-  renderManualList();
-  document.getElementById('m-com').value=''; document.getElementById('m-comv').value='';
-  document.getElementById('m-ctr').value=''; document.getElementById('m-ctrv').value='';
-  manualMsg('','');
+/* Manual */
+function manAdd(){
+  const y=el('m-yr').value.trim(), tp=el('m-tp').value;
+  const cn=el('m-cn').value.trim(), cv=parseFloat(el('m-cv').value)||0;
+  const dn=el('m-dn').value.trim(), dv=parseFloat(el('m-dv').value)||0;
+  const rg=el('m-rg').value;
+  if(!y||(!cn&&!dn)){setMsg('man-msg','err','أدخل السنة وسلعة أو دولة على الأقل');return;}
+  manRows.push({y,tp,cn,cv,dn,dv,rg});
+  el('m-cn').value='';el('m-cv').value='';el('m-dn').value='';el('m-dv').value='';
+  renderManRows(); setMsg('man-msg','','');
 }
-function renderManualList(){
-  const host=document.getElementById('man-list');
-  if(!manualRows.length){ host.style.display='none'; host.innerHTML=''; return; }
+function renderManRows(){
+  const host=el('man-rows');
+  if(!manRows.length){host.style.display='none';host.innerHTML='';return;}
   host.style.display='';
-  host.innerHTML = manualRows.map((r,i)=>
-    `<div class="man-list-item"><span>${r.y} · ${r.type==='exp'?'صادرات':'واردات'} · ${r.com?(r.com+' '+r.comv+'K'):''} ${r.ctr?(r.ctr+' '+r.ctrv+'K'):''}</span>
-     <button class="btn btn-sm" style="padding:1px 7px" onclick="manualDel(${i})">✕</button></div>`).join('');
+  host.innerHTML=manRows.map((r,i)=>`<div class="man-row">
+    <span>${r.y} · ${r.tp==='exp'?'صادرات':'واردات'} ${r.cn?'· '+r.cn+' '+r.cv+'K':''} ${r.dn?'· '+r.dn+' '+r.dv+'K':''}</span>
+    <button class="del-btn" onclick="manDel(${i})">✕</button>
+  </div>`).join('');
 }
-function manualDel(i){ manualRows.splice(i,1); renderManualList(); }
-function manualSaveAll(){
-  if(!manualRows.length){ manualMsg('err','لا توجد صفوف للحفظ'); return; }
-  manualRows.forEach(r=>{
-    const yd=ensureYear(r.y);
-    const isExp=r.type==='exp';
-    if(r.com) upsert(isExp?yd.exp_com:yd.imp_com, r.com, r.comv);
-    if(r.ctr) upsert(isExp?yd.exp_ctr:yd.imp_ctr, r.ctr, r.ctrv, r.region);
+function manDel(i){manRows.splice(i,1);renderManRows();}
+function manSave(){
+  if(!manRows.length){setMsg('man-msg','err','لا توجد صفوف للحفظ');return;}
+  manRows.forEach(r=>{
+    const yd=ensureYr(r.y);
+    if(r.cn) upsert(r.tp==='exp'?yd.exp_com:yd.imp_com,r.cn,r.cv);
+    if(r.dn) upsert(r.tp==='exp'?yd.exp_ctr:yd.imp_ctr,r.dn,r.dv,r.rg);
   });
-  [...new Set(manualRows.map(r=>r.y))].forEach(rebuildAnnual);
-  const n=manualRows.length;
-  manualRows=[];
-  renderManualList();
+  [...new Set(manRows.map(r=>r.y))].forEach(rebuildAnnual);
+  const n=manRows.length; manRows=[]; renderManRows();
   persistAndRefresh();
-  manualMsg('ok','تم حفظ '+n+' صف وتحديث قاعدة البيانات');
+  setMsg('man-msg','ok','✅ تم حفظ '+n+' صف');
 }
-function manualMsg(t,m){ document.getElementById('manual-msg').innerHTML=m?`<div class="msg ${t}">${m}</div>`:''; }
 
 /* Reset */
-function resetDB(){
-  if(document.getElementById('reset-phrase').value.trim()!=='DELETE TRADE DATA'){
-    document.getElementById('manage-msg').innerHTML='<div class="msg err">العبارة غير مطابقة. اكتب: DELETE TRADE DATA</div>';
-    return;
+function doReset(){
+  if(el('reset-phrase').value.trim()!=='DELETE TRADE DATA'){
+    setMsg('mg-msg','err','العبارة غير مطابقة');return;
   }
-  localStorage.removeItem(TRADE.key);
-  DB = TRADE.loadDatabase(SEED);
-  document.getElementById('reset-phrase').value='';
-  populateSelects();
-  Q.year=dbYears()[0]; Q.yearMode='single';
-  document.getElementById('f-yearMode').value='single';
-  document.getElementById('f-year').value=Q.year;
-  syncFilterVisibility(); run(); renderDBSection();
-  document.getElementById('manage-msg').innerHTML='<div class="msg ok">تمت إعادة التعيين إلى البيانات الأساسية</div>';
+  localStorage.removeItem(SVC.key);
+  DB=SVC.loadDatabase(SEED);
+  buildYearSelects();buildComCtrSelects();
+  Q.yr=allYears()[0];Q.ym='single';
+  el('f-ym').value='single';el('f-yr').value=Q.yr;
+  el('reset-phrase').value='';
+  syncVisibility();run();
+  setMsg('mg-msg','ok','✅ تمت إعادة التعيين إلى البيانات الأساسية');
+}
+
+function setMsg(id,t,m){
+  el(id).innerHTML=m?`<div class="msg ${t}">${m}</div>`:'';
 }
 </script>
 </body>
