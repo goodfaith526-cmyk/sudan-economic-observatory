@@ -6,6 +6,7 @@
 <title>مستكشف التجارة الخارجية — المرصد الاقتصادي السوداني</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --navy:#1b3a6b;--navy2:#2952a3;--navy3:#dce6f7;
@@ -432,15 +433,15 @@ tbody tr:hover td{background:#f5f8fd}
 
       <div id="v-admin" style="display:none">
         <div class="tabs">
-          <button data-t="csv" class="on">📤 رفع CSV</button>
+          <button data-t="csv" class="on">📤 رفع CSV / Excel</button>
           <button data-t="json">📥 استيراد JSON</button>
           <button data-t="manual">✏ إدخال يدوي</button>
           <button data-t="manage">🗄 إدارة القاعدة</button>
         </div>
 
         <div class="tab-pane on" id="pane-csv">
-          <p class="hint">الأعمدة: <code>year, type (exp/imp), commodity_name, commodity_value_kusd, country_name, country_value_kusd, region</code></p>
-          <div class="dz" id="csv-dz"><b>اسحب ملف CSV هنا</b>أو انقر للاختيار<input type="file" id="csv-fi" accept=".csv" style="display:none"></div>
+          <p class="hint">يدعم ملفات <strong>Excel (.xlsx/.xls)</strong> و <strong>CSV</strong> — الأعمدة المطلوبة: <code>year, type (exp/imp), commodity_name, commodity_value_kusd, country_name, country_value_kusd, region</code></p>
+          <div class="dz" id="csv-dz"><b>اسحب ملف Excel أو CSV هنا</b>أو انقر للاختيار (.xlsx .xls .csv)<input type="file" id="csv-fi" accept=".csv,.xlsx,.xls" style="display:none"></div>
           <div class="row-btns">
             <button class="btn btn-sm" onclick="dlTemplate()">⬇ تحميل قالب</button>
             <button class="btn btn-navy btn-sm" id="csv-confirm-btn" style="display:none" onclick="confirmCSV()">✅ تأكيد الاستيراد</button>
@@ -1875,30 +1876,46 @@ function parseCsvText(text){
   return rows.filter(r=>r.some(c=>c.trim()));
 }
 
+function rowsToImport(rows){
+  if(rows.length<2){setMsg('csv-msg','err','الملف فارغ أو غير صالح');return;}
+  const hdr=rows[0].map(h=>String(h).toLowerCase().trim());
+  const idx={year:hdr.indexOf('year'),type:hdr.indexOf('type'),cn:hdr.indexOf('commodity_name'),cv:hdr.indexOf('commodity_value_kusd'),dn:hdr.indexOf('country_name'),dv:hdr.indexOf('country_value_kusd'),rgn:hdr.indexOf('region')};
+  if(idx.year<0||idx.type<0){setMsg('csv-msg','err','أعمدة مفقودة: year و type مطلوبان');return;}
+  csvParsed=rows.slice(1).map(r=>({
+    year:String(r[idx.year]||'').trim(),type:String(r[idx.type]||'').trim().toLowerCase(),
+    cn:idx.cn>=0?String(r[idx.cn]||'').trim():'',cv:idx.cv>=0?parseFloat(r[idx.cv])||0:0,
+    dn:idx.dn>=0?String(r[idx.dn]||'').trim():'',dv:idx.dv>=0?parseFloat(r[idx.dv])||0:0,
+    rgn:idx.rgn>=0?String(r[idx.rgn]||'').trim():''
+  })).filter(d=>d.year&&(d.type==='exp'||d.type==='imp'));
+  if(!csvParsed.length){setMsg('csv-msg','err','لا توجد صفوف صالحة');return;}
+  let pvw='<div class="pvw"><table><thead><tr><th>السنة</th><th>النوع</th><th>السلعة</th><th>قيمة</th><th>الدولة</th><th>قيمة</th><th>المنطقة</th></tr></thead><tbody>';
+  csvParsed.slice(0,8).forEach(d=>pvw+=`<tr><td>${esc(d.year)}</td><td>${esc(d.type)}</td><td>${esc(d.cn)}</td><td>${d.cv}</td><td>${esc(d.dn)}</td><td>${d.dv}</td><td>${esc(d.rgn)}</td></tr>`);
+  pvw+='</tbody></table></div>';
+  el('csv-pvw').innerHTML=`<p class="hint" style="margin-top:10px">معاينة أول 8 صفوف (${csvParsed.length} صف إجمالاً):</p>${pvw}`;
+  el('csv-confirm-btn').style.display='';
+  setMsg('csv-msg','','');
+}
 function handleCSV(file){
-  const reader=new FileReader();
-  reader.onload=e=>{
-    let text=e.target.result.replace(/^﻿/,'');
-    const rows=parseCsvText(text);
-    if(rows.length<2){setMsg('csv-msg','err','الملف فارغ أو غير صالح');return;}
-    const hdr=rows[0].map(h=>h.toLowerCase().trim());
-    const idx={year:hdr.indexOf('year'),type:hdr.indexOf('type'),cn:hdr.indexOf('commodity_name'),cv:hdr.indexOf('commodity_value_kusd'),dn:hdr.indexOf('country_name'),dv:hdr.indexOf('country_value_kusd'),rgn:hdr.indexOf('region')};
-    if(idx.year<0||idx.type<0){setMsg('csv-msg','err','أعمدة مفقودة: year و type مطلوبان');return;}
-    csvParsed=rows.slice(1).map(r=>({
-      year:String(r[idx.year]||'').trim(),type:String(r[idx.type]||'').trim().toLowerCase(),
-      cn:idx.cn>=0?String(r[idx.cn]||'').trim():'',cv:idx.cv>=0?parseFloat(r[idx.cv])||0:0,
-      dn:idx.dn>=0?String(r[idx.dn]||'').trim():'',dv:idx.dv>=0?parseFloat(r[idx.dv])||0:0,
-      rgn:idx.rgn>=0?String(r[idx.rgn]||'').trim():''
-    })).filter(d=>d.year&&(d.type==='exp'||d.type==='imp'));
-    if(!csvParsed.length){setMsg('csv-msg','err','لا توجد صفوف صالحة');return;}
-    let pvw='<div class="pvw"><table><thead><tr><th>السنة</th><th>النوع</th><th>السلعة</th><th>قيمة</th><th>الدولة</th><th>قيمة</th><th>المنطقة</th></tr></thead><tbody>';
-    csvParsed.slice(0,5).forEach(d=>pvw+=`<tr><td>${esc(d.year)}</td><td>${esc(d.type)}</td><td>${esc(d.cn)}</td><td>${d.cv}</td><td>${esc(d.dn)}</td><td>${d.dv}</td><td>${esc(d.rgn)}</td></tr>`);
-    pvw+='</tbody></table></div>';
-    el('csv-pvw').innerHTML=`<p class="hint" style="margin-top:10px">معاينة (${csvParsed.length} صف إجمالاً):</p>${pvw}`;
-    el('csv-confirm-btn').style.display='';
-    setMsg('csv-msg','','');
-  };
-  reader.readAsText(file,'UTF-8');
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='xlsx'||ext==='xls'){
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        rowsToImport(rows);
+      }catch(err){setMsg('csv-msg','err','خطأ في قراءة ملف Excel: '+err.message);}
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const text=e.target.result.replace(/^﻿/,'');
+      rowsToImport(parseCsvText(text));
+    };
+    reader.readAsText(file,'UTF-8');
+  }
 }
 function confirmCSV(){
   if(!csvParsed)return;
