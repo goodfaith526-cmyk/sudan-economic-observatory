@@ -356,6 +356,15 @@ tbody tr:hover td{background:#f5f8fd}
           </div>
         </div>
 
+        <div class="ssec" id="ssec-datasource" style="display:none">
+          <div class="ssec-title">مصدر البيانات</div>
+          <div class="seg" id="seg-src">
+            <button data-v="seed" class="on">📦 البيانات الأساسية</button>
+            <button data-v="cbos">📊 CBOS مستورد</button>
+          </div>
+          <div id="cbos-src-info" style="font-size:10px;color:var(--t4);margin-top:6px;line-height:1.5"></div>
+        </div>
+
         <div class="ssec">
           <div class="ssec-title">قاعدة البيانات</div>
           <div class="db-stat-row">
@@ -433,13 +442,27 @@ tbody tr:hover td{background:#f5f8fd}
 
       <div id="v-admin" style="display:none">
         <div class="tabs">
-          <button data-t="csv" class="on">📤 رفع CSV / Excel</button>
+          <button data-t="cbos" class="on">📊 استيراد CBOS</button>
+          <button data-t="csv">📤 رفع CSV / Excel</button>
           <button data-t="json">📥 استيراد JSON</button>
           <button data-t="manual">✏ إدخال يدوي</button>
           <button data-t="manage">🗄 إدارة القاعدة</button>
         </div>
 
-        <div class="tab-pane on" id="pane-csv">
+        <div class="tab-pane on" id="pane-cbos">
+          <div id="cbos-approved-banner" style="display:none;margin-bottom:12px"></div>
+          <p class="hint">يقبل ملفات CBOS بالصيغة القياسية — الأوراق المطلوبة: <code>metadata, monthly_exports, monthly_imports, quarterly_exports, quarterly_imports, annual_exports_summary, annual_imports_summary, validation_report, review_required</code></p>
+          <div class="dz" id="cbos-dz"><b>اسحب ملف CBOS Excel هنا</b>أو انقر للاختيار (.xlsx)<input type="file" id="cbos-fi" accept=".xlsx,.xls" style="display:none"></div>
+          <div id="cbos-pvw"></div>
+          <div class="row-btns" style="margin-top:8px">
+            <button class="btn btn-navy btn-sm" id="cbos-approve-btn" style="display:none" onclick="approveCBOSDraft()">✅ الموافقة على الاستيراد</button>
+            <button class="btn btn-sm" id="cbos-discard-btn" style="display:none" onclick="discardCBOSDraft()">🗑 تجاهل المسودة</button>
+            <button class="btn btn-danger btn-sm" id="cbos-clear-btn" style="display:none" onclick="clearCBOSApproved()">⚠ حذف البيانات المعتمدة</button>
+          </div>
+          <div id="cbos-msg"></div>
+        </div>
+
+        <div class="tab-pane" id="pane-csv">
           <p class="hint">يدعم ملفات <strong>Excel (.xlsx/.xls)</strong> و <strong>CSV</strong> — الأعمدة المطلوبة: <code>year, type (exp/imp), commodity_name, commodity_value_kusd, country_name, country_value_kusd, region</code></p>
           <div class="dz" id="csv-dz"><b>اسحب ملف Excel أو CSV هنا</b>أو انقر للاختيار (.xlsx .xls .csv)<input type="file" id="csv-fi" accept=".csv,.xlsx,.xls" style="display:none"></div>
           <div class="row-btns">
@@ -514,7 +537,17 @@ const RBDG = {'عربي':['#dbeafe','#1e40af'],'آسيا':['#fef3c7','#92400e'],
 
 let DB, chartObj=null, lastRows=[], lastIsBalance=false, tableHidden=false, sortS={col:null,dir:'desc'}, manRows=[], csvParsed=null;
 
-const Q = {flow:'export',view:'commodity',ym:'single',yr:'',from:'',to:'',per:'annual',mo:'all',qr:'all',com:'all',ctr:'all',rgn:'all'};
+const Q = {flow:'export',view:'commodity',ym:'single',yr:'',from:'',to:'',per:'annual',mo:'all',qr:'all',com:'all',ctr:'all',rgn:'all',datasource:'seed'};
+
+/* ── CBOS import schema ── */
+const CBOS_DRAFT_KEY     = 'seo_cbos_draft_v1';
+const CBOS_APPROVED_KEY  = 'seo_cbos_approved_v1';
+const CBOS_DATA_SHEETS   = ['monthly_exports','monthly_imports','quarterly_exports','quarterly_imports','annual_exports_summary','annual_imports_summary'];
+const CBOS_ALL_SHEETS    = ['metadata','monthly_exports','monthly_imports','quarterly_exports','quarterly_imports','annual_exports_summary','annual_imports_summary','validation_report','review_required'];
+const CBOS_BASE_COLS     = ['year','flow','period_type','row_type','value_usd_thousand'];
+const CBOS_MONTHLY_COLS  = ['month_number','month_name'];
+const CBOS_QTRLY_COLS    = ['quarter'];
+const CBOS_OPT_COLS      = ['commodity_id','country_id','unit','quantity','source_file','source_page','source_table','validation_status','notes'];
 
 /* ══════════════════════════════════════════════════════
    FORMAT
@@ -544,6 +577,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   bindFilters();
   bindAdminUI();
   syncVisibility();
+  refreshCBOSSourceToggle();
   run();
   refreshDBSection();
 });
@@ -611,6 +645,13 @@ function bindFilters(){
   });
   // Presets
   el('page').querySelectorAll('.preset-btn').forEach(b=>b.onclick=()=>applyPreset(b.dataset.p));
+  // Datasource toggle
+  el('seg-src').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    Q.datasource=b.dataset.v;
+    el('seg-src').querySelectorAll('button').forEach(x=>x.className='');
+    b.className='on';
+    run();
+  });
 }
 
 function syncVisibility(){
@@ -659,7 +700,7 @@ function yearsInScope(){
 
 function run(){
   sortS={col:null,dir:'desc'};
-  const res = buildResult();
+  const res = Q.datasource==='cbos' ? buildCBOSResult() : buildResult();
   lastRows = res.rows;
   lastIsBalance = res.isBalance||false;
 
@@ -814,6 +855,98 @@ function buildResult(){
   }
 
   return{title:'—',rows:[],layer:''};
+}
+
+/* ══════════════════════════════════════════════════════
+   CBOS RETRIEVAL ENGINE
+══════════════════════════════════════════════════════ */
+function buildCBOSResult(){
+  const approved = SVC.storage.getJSON(CBOS_APPROVED_KEY, null);
+  if(!approved||!approved.rows||!approved.rows.length){
+    return{title:'CBOS — لا توجد بيانات معتمدة',rows:[],warn:'لم يتم استيراد بيانات CBOS بعد. استخدم تبويب "استيراد CBOS" في الإدارة.'};
+  }
+
+  const {flow,view,ym,yr,from,to,per,mo,qr,com,ctr,rgn}=Q;
+  let rows = approved.rows;
+
+  /* 1 — row_type: always commodity unless view=country */
+  const targetRowType = view==='country'?'country':'commodity';
+  rows = rows.filter(r=>r.row_type===targetRowType);
+
+  /* 2 — flow */
+  if(flow!=='balance'){
+    const fv = flow==='export'?'export':'import';
+    rows = rows.filter(r=>String(r.flow).toLowerCase()===fv);
+  }
+
+  /* 3 — period_type */
+  const periodMap = {annual:['annual'],monthly:['monthly'],quarterly:['quarterly']};
+  const periods = periodMap[per]||['annual'];
+  rows = rows.filter(r=>periods.includes(String(r.period_type).toLowerCase()));
+
+  /* 4 — year scope */
+  if(ym==='single') rows=rows.filter(r=>String(r.year)===String(yr));
+  else if(ym==='range') rows=rows.filter(r=>Number(r.year)>=Number(from)&&Number(r.year)<=Number(to));
+
+  /* 5 — month filter */
+  if(per==='monthly'&&mo!=='all') rows=rows.filter(r=>String(r.month_number)===String(mo));
+
+  /* 6 — quarter filter */
+  if(per==='quarterly'&&qr!=='all') rows=rows.filter(r=>String(r.quarter)===String(qr));
+
+  /* 7 — commodity/country name filter */
+  if(view==='commodity'&&com!=='all') rows=rows.filter(r=>r.commodity_id===com);
+  if(view==='country'&&ctr!=='all') rows=rows.filter(r=>r.country_id===ctr);
+
+  /* 8 — aggregate by label */
+  const labelKey = view==='country'?'country_id':'commodity_id';
+  if(flow==='balance'){
+    /* balance: aggregate exp - imp per label */
+    const expRows = approved.rows.filter(r=>r.row_type===targetRowType&&r.flow==='export');
+    const impRows = approved.rows.filter(r=>r.row_type===targetRowType&&r.flow==='import');
+    const applyYr = arr=>{
+      if(ym==='single') return arr.filter(r=>String(r.year)===String(yr));
+      if(ym==='range')  return arr.filter(r=>Number(r.year)>=Number(from)&&Number(r.year)<=Number(to));
+      return arr;
+    };
+    const aggMap={};
+    applyYr(expRows).filter(r=>periods.includes(String(r.period_type).toLowerCase())).forEach(r=>{
+      const k=String(r.year); if(!aggMap[k]) aggMap[k]={lb:k,e:0,i:0,b:0,type:'bal'};
+      aggMap[k].e+=parseFloat(r.value_usd_thousand)||0;
+    });
+    applyYr(impRows).filter(r=>periods.includes(String(r.period_type).toLowerCase())).forEach(r=>{
+      const k=String(r.year); if(!aggMap[k]) aggMap[k]={lb:k,e:0,i:0,b:0,type:'bal'};
+      aggMap[k].i+=parseFloat(r.value_usd_thousand)||0;
+    });
+    const balRows=Object.values(aggMap).map(r=>({...r,b:r.e-r.i})).sort((a,b)=>Number(a.lb)-Number(b.lb));
+    return{title:`CBOS — الميزان التجاري`,rows:balRows,isBalance:true,
+      sub:`مصدر: ${approved.filename||'CBOS'}`,layer:'بيانات معتمدة — CBOS'};
+  }
+
+  const grouped={};
+  rows.forEach(r=>{
+    const k=r[labelKey]||'غير محدد';
+    if(!grouped[k]) grouped[k]={n:k,v:0};
+    grouped[k].v+=parseFloat(r.value_usd_thousand)||0;
+  });
+  const result=Object.values(grouped).sort((a,b)=>b.v-a.v);
+  const total=result.reduce((s,r)=>s+r.v,0);
+  result.forEach(r=>r.p=total?Math.round(r.v/total*1000)/10:0);
+
+  /* period label */
+  let perLbl=per==='monthly'?(mo==='all'?'جميع الشهور':MN[Number(mo)-1])
+    :per==='quarterly'?(qr==='all'?'جميع الأرباع':'Q'+qr):'سنوي';
+  const yrLbl=ym==='single'?yr:ym==='range'?`${from}–${to}`:'كل السنوات';
+  const flowLbl=flow==='export'?'صادرات':'واردات';
+  const viewLbl=view==='country'?'حسب الدولة':'حسب السلعة';
+
+  return{
+    title:`CBOS — ${flowLbl} ${yrLbl} ${perLbl} ${viewLbl}`,
+    rows:result,
+    sub:`${result.length} عنصر | الإجمالي: ${fmt(total)} | مصدر: ${approved.filename||'CBOS'}`,
+    layer:`بيانات معتمدة CBOS — row_type: ${targetRowType} | period_type: ${per}`,
+    isCBOS:true
+  };
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1109,6 +1242,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     b.classList.add('on');
     document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
     el('pane-'+b.dataset.t).classList.add('on');
+    if(b.dataset.t==='cbos') refreshCBOSAdminPane();
   });
   // CSV drag-drop
   const dz=el('csv-dz'), fi=el('csv-fi');
@@ -1117,7 +1251,220 @@ document.addEventListener('DOMContentLoaded',()=>{
   dz.ondragleave=()=>dz.classList.remove('over');
   dz.ondrop=e=>{e.preventDefault();dz.classList.remove('over');if(e.dataTransfer.files[0])handleCSV(e.dataTransfer.files[0]);};
   fi.onchange=e=>{if(e.target.files[0])handleCSV(e.target.files[0]);};
+  // CBOS drag-drop
+  const cdz=el('cbos-dz'), cfi=el('cbos-fi');
+  cdz.onclick=e=>{if(e.target!==cfi)cfi.click();};
+  cdz.ondragover=e=>{e.preventDefault();cdz.classList.add('over');};
+  cdz.ondragleave=()=>cdz.classList.remove('over');
+  cdz.ondrop=e=>{e.preventDefault();cdz.classList.remove('over');if(e.dataTransfer.files[0])handleCBOSFile(e.dataTransfer.files[0]);};
+  cfi.onchange=e=>{if(e.target.files[0])handleCBOSFile(e.target.files[0]);};
+  refreshCBOSAdminPane();
 });
+
+/* ══════════════════════════════════════════════════════
+   CBOS IMPORT ENGINE
+══════════════════════════════════════════════════════ */
+function handleCBOSFile(file){
+  setMsg('cbos-msg','','');
+  el('cbos-pvw').innerHTML='<div class="hint">جاري قراءة الملف…</div>';
+  el('cbos-approve-btn').style.display='none';
+  el('cbos-discard-btn').style.display='none';
+
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheetNames=wb.SheetNames;
+
+      /* 1 — validate required sheets */
+      const missing=CBOS_ALL_SHEETS.filter(s=>!sheetNames.includes(s));
+      if(missing.length){
+        el('cbos-pvw').innerHTML='';
+        setMsg('cbos-msg','err','أوراق مفقودة: '+missing.join(', '));
+        return;
+      }
+
+      /* 2 — parse and validate data sheets */
+      const sheets={};
+      const colErrors=[];
+      const counts={};
+      const rowTypeTotals={};
+      const validationTotals={};
+      const yearsCovered=new Set();
+
+      CBOS_DATA_SHEETS.forEach(sname=>{
+        const ws=wb.Sheets[sname];
+        const allRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        if(allRows.length<2){sheets[sname]=[];counts[sname]=0;return;}
+        const hdr=allRows[0].map(h=>String(h).toLowerCase().trim());
+
+        /* validate base columns */
+        const missingCols=CBOS_BASE_COLS.filter(c=>!hdr.includes(c));
+        if(missingCols.length) colErrors.push(`${sname}: أعمدة مفقودة: ${missingCols.join(', ')}`);
+
+        /* parse rows — preserve all fields */
+        const parsed=allRows.slice(1).map(row=>{
+          const obj={_sheet:sname};
+          hdr.forEach((h,i)=>{obj[h]=row[i]===''?null:row[i];});
+          return obj;
+        }).filter(r=>r.year!=null&&r.row_type!=null);
+
+        sheets[sname]=parsed;
+        counts[sname]=parsed.length;
+        parsed.forEach(r=>{
+          if(r.year) yearsCovered.add(String(r.year));
+          const rt=String(r.row_type||'unknown');
+          rowTypeTotals[rt]=(rowTypeTotals[rt]||0)+1;
+          const vs=String(r.validation_status||'unknown');
+          validationTotals[vs]=(validationTotals[vs]||0)+1;
+        });
+      });
+
+      if(colErrors.length){
+        el('cbos-pvw').innerHTML='';
+        setMsg('cbos-msg','err',colErrors.join('<br>'));
+        return;
+      }
+
+      /* 3 — store as draft */
+      const draft={
+        importedAt:new Date().toISOString(),
+        filename:file.name,
+        sheets,
+        counts,
+        rowTypeTotals,
+        validationTotals,
+        yearsCovered:[...yearsCovered].sort()
+      };
+      SVC.storage.setJSON(CBOS_DRAFT_KEY,draft);
+
+      /* 4 — show preview */
+      const totalRows=Object.values(counts).reduce((s,n)=>s+n,0);
+      let pvw=`<div style="margin-top:12px">
+        <p class="hint"><b>مسودة جاهزة للمراجعة</b> — ${totalRows} صف إجمالاً من ${CBOS_DATA_SHEETS.length} أوراق</p>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;margin:8px 0">
+          <thead><tr style="background:var(--bg3)"><th style="padding:5px 8px;text-align:right">الورقة</th><th style="padding:5px 8px;text-align:left">عدد الصفوف</th></tr></thead><tbody>`;
+      CBOS_DATA_SHEETS.forEach(s=>{
+        pvw+=`<tr style="border-bottom:1px solid var(--bg3)"><td style="padding:5px 8px">${s}</td><td style="padding:5px 8px;direction:ltr">${counts[s]||0}</td></tr>`;
+      });
+      pvw+=`</tbody></table>`;
+
+      /* row_type breakdown */
+      pvw+=`<p class="hint" style="margin-top:8px"><b>توزيع row_type:</b></p>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">`;
+      Object.entries(rowTypeTotals).sort((a,b)=>b[1]-a[1]).forEach(([rt,n])=>{
+        pvw+=`<span style="background:var(--bg3);border-radius:5px;padding:3px 9px;font-size:10px"><b>${rt}</b>: ${n}</span>`;
+      });
+      pvw+=`</div>`;
+
+      /* validation_status breakdown */
+      pvw+=`<p class="hint"><b>حالة التحقق:</b></p>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">`;
+      Object.entries(validationTotals).sort((a,b)=>b[1]-a[1]).forEach(([vs,n])=>{
+        const col=vs==='valid'?'var(--exp)':vs==='review_required'?'var(--gold)':'var(--imp)';
+        pvw+=`<span style="background:var(--bg3);border-radius:5px;padding:3px 9px;font-size:10px;color:${col}"><b>${vs}</b>: ${n}</span>`;
+      });
+      pvw+=`</div>`;
+
+      pvw+=`<p class="hint"><b>السنوات:</b> ${draft.yearsCovered.join(', ')}</p>`;
+      pvw+=`<p class="hint" style="margin-top:8px;color:var(--gold)">⚠ هذه مسودة فقط — لم تُستورد البيانات بعد. اضغط "الموافقة" لتفعيلها في المستكشف.</p></div>`;
+
+      el('cbos-pvw').innerHTML=pvw;
+      el('cbos-approve-btn').style.display='';
+      el('cbos-discard-btn').style.display='';
+      setMsg('cbos-msg','ok',`✅ تمت قراءة الملف — ${totalRows} صف مسودة`);
+
+    }catch(err){
+      el('cbos-pvw').innerHTML='';
+      setMsg('cbos-msg','err','خطأ في قراءة الملف: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function approveCBOSDraft(){
+  const draft=SVC.storage.getJSON(CBOS_DRAFT_KEY,null);
+  if(!draft){setMsg('cbos-msg','err','لا توجد مسودة للموافقة عليها');return;}
+
+  /* flatten all data sheet rows into one approved array */
+  const allRows=[];
+  CBOS_DATA_SHEETS.forEach(sname=>{
+    (draft.sheets[sname]||[]).forEach(r=>allRows.push(r));
+  });
+
+  SVC.storage.setJSON(CBOS_APPROVED_KEY,{
+    approvedAt:new Date().toISOString(),
+    filename:draft.filename,
+    yearsCovered:draft.yearsCovered,
+    rowTypeTotals:draft.rowTypeTotals,
+    totalRows:allRows.length,
+    rows:allRows
+  });
+  localStorage.removeItem(CBOS_DRAFT_KEY);
+
+  el('cbos-pvw').innerHTML='';
+  el('cbos-approve-btn').style.display='none';
+  el('cbos-discard-btn').style.display='none';
+  setMsg('cbos-msg','ok',`✅ تم اعتماد ${allRows.length} صف — يمكن الآن تشغيل المستكشف بمصدر CBOS`);
+  refreshCBOSAdminPane();
+  refreshCBOSSourceToggle();
+}
+
+function discardCBOSDraft(){
+  localStorage.removeItem(CBOS_DRAFT_KEY);
+  el('cbos-pvw').innerHTML='';
+  el('cbos-approve-btn').style.display='none';
+  el('cbos-discard-btn').style.display='none';
+  setMsg('cbos-msg','','');
+  refreshCBOSAdminPane();
+}
+
+function clearCBOSApproved(){
+  if(!confirm('هل أنت متأكد من حذف جميع البيانات المعتمدة من CBOS؟')) return;
+  localStorage.removeItem(CBOS_APPROVED_KEY);
+  if(Q.datasource==='cbos'){
+    Q.datasource='seed';
+    el('seg-src').querySelectorAll('button').forEach(b=>{b.className=b.dataset.v==='seed'?'on':'';});
+    run();
+  }
+  refreshCBOSAdminPane();
+  refreshCBOSSourceToggle();
+  setMsg('cbos-msg','ok','تم حذف البيانات المعتمدة');
+}
+
+function refreshCBOSAdminPane(){
+  const approved=SVC.storage.getJSON(CBOS_APPROVED_KEY,null);
+  const draft=SVC.storage.getJSON(CBOS_DRAFT_KEY,null);
+  const banner=el('cbos-approved-banner');
+  if(approved){
+    banner.style.display='';
+    banner.innerHTML=`<div class="msg ok">✅ بيانات معتمدة: <b>${approved.totalRows||0}</b> صف من <b>${approved.filename||'CBOS'}</b> — اعتُمد في ${new Date(approved.approvedAt).toLocaleString('ar')}</div>`;
+    el('cbos-clear-btn').style.display='';
+  } else {
+    banner.style.display='none';
+    el('cbos-clear-btn').style.display='none';
+  }
+  if(draft){
+    el('cbos-approve-btn').style.display='';
+    el('cbos-discard-btn').style.display='';
+  }
+}
+
+function refreshCBOSSourceToggle(){
+  const approved=SVC.storage.getJSON(CBOS_APPROVED_KEY,null);
+  const sec=el('ssec-datasource');
+  if(approved){
+    sec.style.display='';
+    const info=el('cbos-src-info');
+    info.textContent=`${approved.totalRows||0} صف معتمد | ${(approved.yearsCovered||[]).join(', ')}`;
+  } else {
+    sec.style.display='none';
+    if(Q.datasource==='cbos'){
+      Q.datasource='seed';
+      el('seg-src').querySelectorAll('button').forEach(b=>{b.className=b.dataset.v==='seed'?'on':'';});
+    }
+  }
+}
 
 /* CSV */
 function parseCsvText(text){
