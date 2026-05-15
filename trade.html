@@ -530,6 +530,7 @@ tbody tr:hover td{background:#f5f8fd}
 ══════════════════════════════════════════════════════ */
 const SEED = window.SEO_DATA.SEED;
 const SVC  = window.SEO_SERVICES.trade;
+const STOR = window.SEO_SERVICES.storage;
 const MN   = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const QN   = ['Q1 يناير–مارس','Q2 أبريل–يونيو','Q3 يوليو–سبتمبر','Q4 أكتوبر–ديسمبر'];
 const PAL  = ['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490','#be185d','#4d7c0f','#0369a1','#92400e','#1e40af'];
@@ -861,7 +862,7 @@ function buildResult(){
    CBOS RETRIEVAL ENGINE
 ══════════════════════════════════════════════════════ */
 function buildCBOSResult(){
-  const approved = SVC.storage.getJSON(CBOS_APPROVED_KEY, null);
+  const approved = STOR.getJSON(CBOS_APPROVED_KEY, null);
   if(!approved||!approved.rows||!approved.rows.length){
     return{title:'CBOS — لا توجد بيانات معتمدة',rows:[],warn:'لم يتم استيراد بيانات CBOS بعد. استخدم تبويب "استيراد CBOS" في الإدارة.'};
   }
@@ -1336,7 +1337,7 @@ function handleCBOSFile(file){
         validationTotals,
         yearsCovered:[...yearsCovered].sort()
       };
-      SVC.storage.setJSON(CBOS_DRAFT_KEY,draft);
+      STOR.setJSON(CBOS_DRAFT_KEY,draft);
 
       /* 4 — show preview */
       const totalRows=Object.values(counts).reduce((s,n)=>s+n,0);
@@ -1383,7 +1384,7 @@ function handleCBOSFile(file){
 }
 
 function approveCBOSDraft(){
-  const draft=SVC.storage.getJSON(CBOS_DRAFT_KEY,null);
+  const draft=STOR.getJSON(CBOS_DRAFT_KEY,null);
   if(!draft){setMsg('cbos-msg','err','لا توجد مسودة للموافقة عليها');return;}
 
   /* flatten all data sheet rows into one approved array */
@@ -1392,7 +1393,7 @@ function approveCBOSDraft(){
     (draft.sheets[sname]||[]).forEach(r=>allRows.push(r));
   });
 
-  SVC.storage.setJSON(CBOS_APPROVED_KEY,{
+  STOR.setJSON(CBOS_APPROVED_KEY,{
     approvedAt:new Date().toISOString(),
     filename:draft.filename,
     yearsCovered:draft.yearsCovered,
@@ -1433,8 +1434,8 @@ function clearCBOSApproved(){
 }
 
 function refreshCBOSAdminPane(){
-  const approved=SVC.storage.getJSON(CBOS_APPROVED_KEY,null);
-  const draft=SVC.storage.getJSON(CBOS_DRAFT_KEY,null);
+  const approved=STOR.getJSON(CBOS_APPROVED_KEY,null);
+  const draft=STOR.getJSON(CBOS_DRAFT_KEY,null);
   const banner=el('cbos-approved-banner');
   if(approved){
     banner.style.display='';
@@ -1451,7 +1452,7 @@ function refreshCBOSAdminPane(){
 }
 
 function refreshCBOSSourceToggle(){
-  const approved=SVC.storage.getJSON(CBOS_APPROVED_KEY,null);
+  const approved=STOR.getJSON(CBOS_APPROVED_KEY,null);
   const sec=el('ssec-datasource');
   if(approved){
     sec.style.display='';
