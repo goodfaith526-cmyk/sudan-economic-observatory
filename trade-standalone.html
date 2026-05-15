@@ -522,7 +522,6 @@ tbody tr:hover td{background:#f5f8fd}
 </div>
 
 <script>
-/* === storage-service.js === */
 window.SEO_SERVICES = window.SEO_SERVICES || {};
 
 window.SEO_SERVICES.storage = {
@@ -546,7 +545,6 @@ window.SEO_SERVICES.storage = {
 
 </script>
 <script>
-/* === trade-seed.js === */
 ﻿window.SEO_DATA = window.SEO_DATA || {};
 window.SEO_DATA.SEED = {
   annual:[
@@ -648,7 +646,6 @@ window.SEO_DATA.SEED = {
 
 </script>
 <script>
-/* === trade-service.js === */
 window.SEO_SERVICES = window.SEO_SERVICES || {};
 
 window.SEO_SERVICES.trade = {
@@ -1276,12 +1273,11 @@ const QN   = ['Q1 يناير–مارس','Q2 أبريل–يونيو','Q3 يول
 const PAL  = ['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490','#be185d','#4d7c0f','#0369a1','#92400e','#1e40af'];
 const RBDG = {'عربي':['#dbeafe','#1e40af'],'آسيا':['#fef3c7','#92400e'],'إفريقيا':['#dcfce7','#166534'],'أوروبا':['#f3e8ff','#6b21a8'],'صناعي':['#ccfbf1','#065f46']};
 
-let DB, chartObj=null, lastRows=[], lastIsBalance=false, tableHidden=false, sortS={col:null,dir:'desc'}, manRows=[], csvParsed=null;
+let DB, chartObj=null, lastRows=[], lastIsBalance=false, tableHidden=false, sortS={col:null,dir:'desc'}, manRows=[], csvParsed=null, cbosDraft=null;
 
 const Q = {flow:'export',view:'commodity',ym:'single',yr:'',from:'',to:'',per:'annual',mo:'all',qr:'all',com:'all',ctr:'all',rgn:'all',datasource:'seed'};
 
 /* ── CBOS import schema ── */
-const CBOS_DRAFT_KEY     = 'seo_cbos_draft_v1';
 const CBOS_APPROVED_KEY  = 'seo_cbos_approved_v1';
 const CBOS_DATA_SHEETS   = ['monthly_exports','monthly_imports','quarterly_exports','quarterly_imports','annual_exports_summary','annual_imports_summary'];
 const CBOS_ALL_SHEETS    = ['metadata','monthly_exports','monthly_imports','quarterly_exports','quarterly_imports','annual_exports_summary','annual_imports_summary','validation_report','review_required'];
@@ -2077,7 +2073,8 @@ function handleCBOSFile(file){
         validationTotals,
         yearsCovered:[...yearsCovered].sort()
       };
-      STOR.setJSON(CBOS_DRAFT_KEY,draft);
+      /* draft stays in memory only — no localStorage write (quota) */
+      cbosDraft = draft;
 
       /* 4 — show preview */
       const totalRows=Object.values(counts).reduce((s,n)=>s+n,0);
@@ -2124,35 +2121,60 @@ function handleCBOSFile(file){
 }
 
 function approveCBOSDraft(){
-  const draft=STOR.getJSON(CBOS_DRAFT_KEY,null);
-  if(!draft){setMsg('cbos-msg','err','لا توجد مسودة للموافقة عليها');return;}
+  const draft=cbosDraft;
+  if(!draft){setMsg('cbos-msg','err','لا توجد مسودة — أعد رفع الملف');return;}
 
-  /* flatten all data sheet rows into one approved array */
-  const allRows=[];
+  /* flatten and slim: keep only fields needed for querying (saves localStorage quota) */
+  const slimRows=[];
   CBOS_DATA_SHEETS.forEach(sname=>{
-    (draft.sheets[sname]||[]).forEach(r=>allRows.push(r));
+    (draft.sheets[sname]||[]).forEach(r=>{
+      const v=parseFloat(r.value_usd_thousand)||0;
+      if(!r.year||!r.flow||!r.period_type||!r.row_type) return;
+      const slim={
+        _s:sname,
+        year:String(r.year),
+        flow:String(r.flow).toLowerCase(),
+        period_type:String(r.period_type).toLowerCase(),
+        row_type:String(r.row_type),
+        value_usd_thousand:v
+      };
+      if(r.commodity_id!=null) slim.commodity_id=String(r.commodity_id);
+      if(r.country_id!=null)   slim.country_id=String(r.country_id);
+      if(r.month_number!=null) slim.month_number=String(r.month_number);
+      if(r.month_name!=null)   slim.month_name=String(r.month_name);
+      if(r.quarter!=null)      slim.quarter=String(r.quarter);
+      if(r.unit!=null)         slim.unit=String(r.unit);
+      if(r.quantity!=null)     slim.quantity=r.quantity;
+      if(r.validation_status!=null) slim.validation_status=String(r.validation_status);
+      slimRows.push(slim);
+    });
   });
 
-  STOR.setJSON(CBOS_APPROVED_KEY,{
-    approvedAt:new Date().toISOString(),
-    filename:draft.filename,
-    yearsCovered:draft.yearsCovered,
-    rowTypeTotals:draft.rowTypeTotals,
-    totalRows:allRows.length,
-    rows:allRows
-  });
-  localStorage.removeItem(CBOS_DRAFT_KEY);
+  try{
+    STOR.setJSON(CBOS_APPROVED_KEY,{
+      approvedAt:new Date().toISOString(),
+      filename:draft.filename,
+      yearsCovered:draft.yearsCovered,
+      rowTypeTotals:draft.rowTypeTotals,
+      totalRows:slimRows.length,
+      rows:slimRows
+    });
+  }catch(e){
+    setMsg('cbos-msg','err','تجاوز مساحة التخزين حتى بعد الضغط ('+slimRows.length+' صف). حاول تصفية الأوراق أو تقليل عدد السنوات.');
+    return;
+  }
 
+  cbosDraft=null;
   el('cbos-pvw').innerHTML='';
   el('cbos-approve-btn').style.display='none';
   el('cbos-discard-btn').style.display='none';
-  setMsg('cbos-msg','ok',`✅ تم اعتماد ${allRows.length} صف — يمكن الآن تشغيل المستكشف بمصدر CBOS`);
+  setMsg('cbos-msg','ok',`✅ تم اعتماد ${slimRows.length} صف — يمكن الآن تشغيل المستكشف بمصدر CBOS`);
   refreshCBOSAdminPane();
   refreshCBOSSourceToggle();
 }
 
 function discardCBOSDraft(){
-  localStorage.removeItem(CBOS_DRAFT_KEY);
+  cbosDraft=null;
   el('cbos-pvw').innerHTML='';
   el('cbos-approve-btn').style.display='none';
   el('cbos-discard-btn').style.display='none';
@@ -2175,7 +2197,6 @@ function clearCBOSApproved(){
 
 function refreshCBOSAdminPane(){
   const approved=STOR.getJSON(CBOS_APPROVED_KEY,null);
-  const draft=STOR.getJSON(CBOS_DRAFT_KEY,null);
   const banner=el('cbos-approved-banner');
   if(approved){
     banner.style.display='';
@@ -2185,7 +2206,7 @@ function refreshCBOSAdminPane(){
     banner.style.display='none';
     el('cbos-clear-btn').style.display='none';
   }
-  if(draft){
+  if(cbosDraft){
     el('cbos-approve-btn').style.display='';
     el('cbos-discard-btn').style.display='';
   }
