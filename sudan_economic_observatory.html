@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المرصد الاقتصادي السوداني</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f9;--bg2:#fff;--bg3:#eef1f6;--bg4:#e4eaf4;
+  --navy:#1b3a6b;--navy2:#2952a3;--navy3:#dce6f7;
+  --gold:#b5640a;--gold2:#d4891e;
+  --exp:#0a7c4e;--exp2:#ecfdf5;
+  --imp:#b91c1c;--imp2:#fef2f2;
+  --bal:#1d4ed8;--bal2:#eff6ff;
+  --amber:#b45309;--amber2:#fffbeb;
+  --border:#d1dae8;--border2:#b8c5d8;
+  --t1:#111827;--t2:#374151;--t3:#6b7280;--t4:#9ca3af;
+  --sh:0 1px 4px rgba(27,58,107,.07);--sh2:0 4px 16px rgba(27,58,107,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:"IBM Plex Sans Arabic",Tahoma,sans-serif;background:var(--bg);color:var(--t1);direction:rtl;min-height:100vh;font-size:14px;line-height:1.65}
+*::-webkit-scrollbar{width:5px;height:5px}
+*::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.hdr{background:linear-gradient(180deg,#152d5a 0%,#1b3a6b 100%);position:sticky;top:0;z-index:300;box-shadow:0 3px 20px rgba(0,0,0,.25)}
+.hdr-top{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:0 24px;height:58px}
+.logo-wrap{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-ic{width:40px;height:40px;background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.logo-t h1{font-size:14px;font-weight:800;color:#fff;line-height:1.2;letter-spacing:-.01em}
+.logo-t p{font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.12em;margin-top:1px}
+.hdr-sep{width:1px;height:28px;background:rgba(255,255,255,.12);flex-shrink:0}
+.hdr-tagline{font-size:11px;color:rgba(255,255,255,.45);font-weight:400}
+.hdr-right{margin-right:auto;display:flex;align-items:center;gap:8px}
+.hdr-badge{font-size:10px;color:rgba(255,255,255,.4);background:rgba(255,255,255,.06);padding:4px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.1);letter-spacing:.03em}
+.hdr-admin-btn{font-size:10px;color:rgba(255,255,255,.65);cursor:pointer;padding:5px 12px;border:1px solid rgba(255,255,255,.18);border-radius:6px;background:rgba(255,255,255,.06);font-family:inherit;transition:.15s}
+.hdr-admin-btn:hover{background:rgba(255,255,255,.12);color:#fff}
+.nav{background:rgba(0,0,0,.25);border-top:1px solid rgba(255,255,255,.07)}
+.nav-inner{max-width:1400px;margin:0 auto;display:flex;overflow-x:auto;padding:0 24px;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nt{padding:10px 14px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.45);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:.15s;display:flex;align-items:center;gap:6px;flex-shrink:0;letter-spacing:.01em}
+.nt:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.nt.on{color:#fff;border-bottom-color:rgba(255,255,255,.8);background:rgba(255,255,255,.06)}
+.nt .nt-ic{font-size:15px}
+.main{max-width:1400px;margin:0 auto;padding:20px}
+.pg{display:none}.pg.on{display:block;animation:fadeUp .25s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page-title{font-size:22px;font-weight:800;color:var(--navy);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.page-title::before{content:"";display:block;width:4px;height:22px;background:linear-gradient(var(--navy),var(--navy2));border-radius:2px;flex-shrink:0}
+.page-sub{font-size:12px;color:var(--t3);margin-bottom:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;box-shadow:var(--sh)}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card-title{font-size:12px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:6px}
+.card-title::before{content:"";display:block;width:3px;height:13px;background:var(--navy);border-radius:2px;flex-shrink:0}
+.card-body{padding:14px 16px}
+.sec-title{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sec-title::before{content:"";display:block;width:3px;height:14px;background:linear-gradient(var(--navy),var(--navy2));border-radius:2px;flex-shrink:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.seg{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:2px;gap:1px}
+.seg button{padding:5px 11px;border-radius:4px;border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;transition:.15s;white-space:nowrap}
+.seg button.on{background:var(--bg2);color:var(--navy);box-shadow:0 1px 3px rgba(27,58,107,.1)}
+.seg button.on-e{background:var(--exp2);color:var(--exp)}
+.seg button.on-i{background:var(--imp2);color:var(--imp)}
+.seg button.on-b{background:var(--bal2);color:var(--bal)}
+select{padding:6px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--t1);font-family:inherit;font-size:12px;cursor:pointer}
+select:focus{outline:none;border-color:var(--navy2)}
+.btn{padding:6px 14px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:.15s;border:1px solid transparent}
+.btn-navy{background:var(--navy);color:#fff}.btn-navy:hover{background:var(--navy2)}
+.btn-ghost{background:var(--bg3);color:var(--t2);border-color:var(--border)}.btn-ghost:hover{border-color:var(--navy2);color:var(--navy)}
+.note{background:var(--amber2);border:1px solid rgba(180,83,9,.2);border-radius:7px;padding:8px 12px;font-size:10px;color:var(--amber);line-height:1.6;display:flex;gap:6px}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt thead th{background:var(--bg3);color:var(--t3);padding:8px 12px;text-align:right;font-weight:700;font-size:10px;letter-spacing:.04em;border-bottom:2px solid var(--border2);position:sticky;top:0;z-index:2;white-space:nowrap}
+table.dt tbody td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--t2);vertical-align:middle}
+table.dt tbody tr:hover td{background:var(--bg3)}
+td.n{font-weight:700;color:var(--t1);direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+td.rk{color:var(--t4);font-size:10px;text-align:center;width:26px}
+.bar-r{display:flex;align-items:center;gap:5px}
+.bar-bg{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;flex:1;max-width:80px}
+.bar-f{height:100%;border-radius:2px}
+.rbdg{font-size:9px;padding:1px 6px;border-radius:8px;font-weight:700;white-space:nowrap}
+.r-arab{background:#dbeafe;color:#1e40af}.r-afr{background:#dcfce7;color:#166534}
+.r-asia{background:#fef3c7;color:#92400e}.r-eur{background:#f3e8ff;color:#6b21a8}
+.r-ind{background:#ccfbf1;color:#065f46}
+.stat-pill{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:12px}
+.stat-pill:last-child{border:none}
+.sp-l{color:var(--t2)}.sp-v{font-weight:700;color:var(--t1)}
+.sp-v.ec{color:var(--exp)}.sp-v.ic{color:var(--imp)}.sp-v.nc{color:var(--imp)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-g{background:#ecfdf5;color:#065f46}.badge-w{background:#fffbeb;color:#92400e}
+.badge-r{background:#fef2f2;color:#991b1b}.badge-b{background:#eff6ff;color:#1e40af}
+.home-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);border-radius:14px;padding:36px 32px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden}
+.home-hero::before{content:"🔭";position:absolute;left:-10px;top:-10px;font-size:120px;opacity:.06;transform:rotate(-15deg)}
+.home-hero h2{font-size:28px;font-weight:800;margin-bottom:8px;line-height:1.2}
+.home-hero p{font-size:13px;color:rgba(255,255,255,.7);max-width:600px;line-height:1.8;margin-bottom:18px}
+.home-mission{display:flex;gap:10px;flex-wrap:wrap}
+.hm-item{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 14px;font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:6px}
+.live-indicators{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.li-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--sh);cursor:pointer;transition:.2s}
+.li-card:hover{border-color:var(--navy2);transform:translateY(-1px)}
+.li-lbl{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.li-val{font-size:26px;font-weight:800;color:var(--t1);line-height:1;margin-bottom:4px}
+.li-sub{font-size:10px;color:var(--t3)}
+.li-trend{font-size:10px;font-weight:700;margin-top:5px;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:8px}
+.tr-r{background:var(--imp2);color:var(--imp)}.tr-g{background:var(--exp2);color:var(--exp)}.tr-y{background:var(--amber2);color:var(--amber)}
+.li-bar{height:2px;border-radius:1px;margin-top:10px}
+.quick-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.qn-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:.2s;box-shadow:var(--sh)}
+.qn-card:hover{border-color:var(--navy2);background:var(--navy3);transform:translateY(-1px)}
+.qn-ic{font-size:24px;margin-bottom:6px}.qn-t{font-size:12px;font-weight:700;color:var(--navy)}.qn-s{font-size:10px;color:var(--t3);margin-top:2px}
+.te-filters{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--sh)}
+.te-frow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.te-content{display:grid;grid-template-columns:1fr 280px;gap:12px;align-items:start}
+.vt-grp{display:flex;gap:2px}
+.vt{padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);font-size:10px;font-weight:700;color:var(--t3);cursor:pointer;transition:.15s;font-family:inherit}
+.vt.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.vt:hover:not(.on){border-color:var(--navy2);color:var(--navy2)}
+.tbl-wrap{overflow:auto;max-height:400px}
+.chart-area{padding:14px;height:340px;position:relative}
+.src-note{font-size:10px;color:var(--t3);padding:8px 14px;border-top:1px solid var(--border);display:flex;gap:5px}
+.te-right{display:flex;flex-direction:column;gap:10px}
+.db-years{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.ychip{font-size:10px;padding:2px 9px;border-radius:10px;font-weight:700;background:var(--bg3);color:var(--navy);border:1px solid var(--border2)}
+.ychip.on{background:var(--navy);color:#fff}
+.admin-upload{display:none!important}.admin-upload.show{display:block!important}
+.dz{border:2px dashed var(--border2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:.2s;background:var(--bg3)}
+.dz:hover,.dz.drag{border-color:var(--navy2);background:var(--navy3)}
+.dz-ic{font-size:22px;margin-bottom:4px}.dz-t{font-size:11px;color:var(--t2);font-weight:600}.dz-s{font-size:10px;color:var(--t4);margin-top:1px}
+.lf-item{font-size:10px;background:var(--bg3);padding:3px 8px;border-radius:4px;display:flex;justify-content:space-between;color:var(--t2);margin-top:4px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border-radius:12px;padding:22px;width:92%;max-width:680px;max-height:88vh;overflow-y:auto;box-shadow:var(--sh2)}
+.modal h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px}
+.ext-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ef{display:flex;flex-direction:column;gap:3px}
+.ef label{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.04em}
+.ef input,.ef select{padding:6px 10px;border:1px solid var(--border2);border-radius:6px;background:var(--bg2);color:var(--t1);font-family:inherit;font-size:12px}
+.ef input:focus,.ef select:focus{outline:none;border-color:var(--navy2)}
+.raw-preview{font-size:10px;color:var(--t3);background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;max-height:120px;overflow:auto;font-family:monospace;direction:ltr;margin-bottom:12px;white-space:pre-wrap;word-break:break-all}
+.modal-ftr{display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:12px}
+.price-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;transition:.2s;cursor:pointer}
+.price-card:hover{border-color:var(--navy2)}
+.pc-item{font-size:11px;color:var(--t3);margin-bottom:4px;font-weight:600}
+.pc-price{font-size:22px;font-weight:800;color:var(--t1);line-height:1}
+.pc-unit{font-size:10px;color:var(--t4);margin-top:2px}
+.pc-change{font-size:10px;font-weight:700;margin-top:5px;display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:7px}
+.prices-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.macro-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--sh)}
+.mc-lbl{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.mc-val{font-size:24px;font-weight:800;color:var(--t1);line-height:1;margin-bottom:4px}
+.mc-src{font-size:10px;color:var(--t4)}.mc-status{font-size:10px;font-weight:600;margin-top:5px}
+.mc-bar{height:2px;border-radius:1px;margin-top:10px}
+.exr-table{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.exr-card{border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;background:var(--bg2)}
+.exr-lbl{font-size:10px;color:var(--t3);font-weight:600;margin-bottom:5px}.exr-val{font-size:22px;font-weight:800}
+.fs-alert{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6;margin-bottom:6px}
+.fs-alert.crit{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b}
+.fs-alert.warn{background:#fffbeb;border:1px solid #fcd34d;color:#92400e}
+.fs-alert.info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.state-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.state-card{border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;background:var(--bg2)}
+.sc-name{font-weight:700;color:var(--t1);margin-bottom:4px}
+.sc-level{font-size:10px;font-weight:600;padding:1px 7px;border-radius:7px;display:inline-block;margin-bottom:4px}
+.sl-crit{background:#fee2e2;color:#991b1b}.sl-ser{background:#fef9c3;color:#a16207}
+.sl-mod{background:#dbeafe;color:#1e40af}.sl-ok{background:#dcfce7;color:#166534}
+.gap-hero{background:linear-gradient(135deg,#fef2f2,#fff8f0);border:1px solid #fca5a5;border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.gap-legend{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0}
+.gl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2);font-weight:600}
+.gld{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.gap-matrix{overflow-x:auto;margin-bottom:16px}
+table.gmt{border-collapse:collapse;min-width:650px;width:100%;font-size:12px}
+.gmt th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--t3);text-align:center;border-bottom:1px solid var(--border2);background:var(--bg3)}
+.gmt th:first-child{text-align:right}
+.gmt td{padding:7px 12px;border-bottom:1px solid var(--bg3)}
+.gmt td:first-child{font-size:12px;font-weight:600;color:var(--t1);white-space:nowrap}
+.gc{width:30px;height:26px;border-radius:5px;margin:1px auto;display:flex;align-items:center;justify-content:center;font-size:12px}
+.gc-g{background:#dcfce7;color:#166534}.gc-w{background:#fef9c3;color:#a16207}
+.gc-r{background:#fee2e2;color:#991b1b}.gc-n{background:var(--bg3);color:var(--t4)}
+.gap-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.gap-card{border:1px solid var(--border);border-radius:9px;padding:14px;background:var(--bg2)}
+.gap-card.crit{border-color:#fca5a5;background:#fef2f2}
+.gap-card.warn{border-color:#fcd34d;background:#fffbeb}
+.gc-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:5px}
+.gc-body{font-size:11px;color:var(--t2);line-height:1.7;margin-bottom:7px}
+.gc-impact{font-size:11px;font-weight:600;color:var(--imp)}
+.forum-layout{display:grid;grid-template-columns:1fr 260px;gap:14px;align-items:start}
+.compose{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px}
+.fi{width:100%;padding:8px 12px;border:1px solid var(--border2);border-radius:7px;background:var(--bg2);color:var(--t1);font-family:inherit;font-size:12px;margin-bottom:8px;resize:none}
+.fi:focus{outline:none;border-color:var(--navy2)}
+.fi-row{display:flex;gap:6px;align-items:center}
+.post-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)}
+.post-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.post-author{font-size:12px;font-weight:700;color:var(--t1)}
+.post-time{font-size:10px;color:var(--t4)}
+.post-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--navy3);color:var(--navy);font-weight:700;margin-right:auto}
+.post-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:5px;line-height:1.4}
+.post-body{font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:10px}
+.post-acts{display:flex;gap:12px}
+.pact{font-size:11px;color:var(--t3);cursor:pointer;display:flex;align-items:center;gap:3px}
+.pact:hover{color:var(--navy)}
+.forum-side{display:flex;flex-direction:column;gap:10px}
+.topic-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bg3)}
+.topic-row:last-child{border:none}
+.td{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tr-name{font-size:11px;color:var(--t2);font-weight:500;flex:1}
+.tr-cnt{font-size:10px;color:var(--t4);background:var(--bg3);padding:1px 6px;border-radius:8px}
+.lib-search-wrap{display:flex;gap:8px;margin-bottom:16px}
+.lib-search{flex:1;padding:9px 14px;border:1px solid var(--border2);border-radius:8px;background:var(--bg2);color:var(--t1);font-family:inherit;font-size:13px}
+.lib-search:focus{outline:none;border-color:var(--navy2)}
+.lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lib-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:14px;cursor:pointer;transition:.2s;box-shadow:var(--sh)}
+.lib-card:hover{border-color:var(--navy2);transform:translateY(-1px)}
+.lib-type{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;color:var(--navy2)}
+.lib-title{font-size:12px;font-weight:700;color:var(--t1);margin-bottom:5px;line-height:1.4}
+.lib-desc{font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+.lib-meta{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--t4)}
+.about-hero{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:14px;padding:32px;color:#fff;margin-bottom:20px;text-align:center}
+.about-hero h2{font-size:26px;font-weight:800;margin-bottom:8px}
+.about-hero p{font-size:13px;color:rgba(255,255,255,.7);max-width:600px;margin:0 auto;line-height:1.8}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.val-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center}
+.val-ic{font-size:28px;margin-bottom:8px}.val-h{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px}.val-p{font-size:11px;color:var(--t2);line-height:1.7}
+.contact-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;max-width:560px;margin:0 auto}
+.cf{display:flex;flex-direction:column;gap:3px;margin-bottom:12px}
+.cf label{font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.cf input,.cf textarea,.cf select{padding:8px 12px;border:1px solid var(--border2);border-radius:7px;background:var(--bg2);color:var(--t1);font-family:inherit;font-size:12px}
+.cf textarea{resize:vertical;min-height:70px}
+.cf input:focus,.cf textarea:focus{outline:none;border-color:var(--navy2)}
+@media(max-width:1100px){.te-content{grid-template-columns:1fr}.forum-layout{grid-template-columns:1fr}}
+@media(max-width:800px){.live-indicators,.macro-grid{grid-template-columns:1fr 1fr}.quick-nav,.state-grid{grid-template-columns:1fr 1fr}.lib-grid,.values-grid,.gap-cards{grid-template-columns:1fr}.prices-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.live-indicators,.quick-nav,.grid2,.grid3,.macro-grid{grid-template-columns:1fr}.exr-table,.prices-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="logo-wrap" onclick="nav('home')" style="cursor:pointer">
+      <div class="logo-ic">🔭</div>
+      <div class="logo-t"><h1>المرصد الاقتصادي السوداني</h1><p>SUDAN ECONOMIC OBSERVATORY</p></div>
+    </div>
+    <div class="hdr-sep"></div>
+    <div class="hdr-tagline">توثيق ما هو موجود · تسليط الضوء على ما هو ناقص</div>
+    <div class="hdr-right">
+      <div class="hdr-badge">🇸🇩 مبادرة مستقلة · 2025</div>
+      <button class="hdr-admin-btn" onclick="toggleAdmin()">⚙ الإدارة</button>
+    </div>
+  </div>
+  <div class="nav"><div class="nav-inner">
+    <div class="nt on" onclick="nav('home')"><span class="nt-ic">🏠</span>الرئيسية</div>
+    <div class="nt" onclick="nav('trade')"><span class="nt-ic">📦</span>التجارة الخارجية</div>
+    <div class="nt" onclick="nav('market')"><span class="nt-ic">🛒</span>نبض السوق</div>
+    <div class="nt" onclick="nav('macro')"><span class="nt-ic">📊</span>المؤشرات الكلية</div>
+    <div class="nt" onclick="nav('food')"><span class="nt-ic">🌾</span>الأمن الغذائي</div>
+    <div class="nt" onclick="nav('gaps')"><span class="nt-ic">🕳</span>خريطة الفجوات</div>
+    <div class="nt" onclick="nav('forum')"><span class="nt-ic">💬</span>المنتدى</div>
+    <div class="nt" onclick="nav('library')"><span class="nt-ic">📚</span>المكتبة</div>
+    <div class="nt" onclick="nav('about')"><span class="nt-ic">ℹ</span>عن المرصد</div>
+  </div></div>
+</div>
+<div class="main">
+
+<!-- HOME -->
+<div class="pg on" id="pg-home">
+  <div class="home-hero">
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px">
+      <div style="width:70px;height:70px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,.3)">🔭</div>
+      <div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px">Sudan Economic Observatory</div>
+        <h2 style="font-size:30px;margin-bottom:0">المرصد الاقتصادي السوداني</h2>
+      </div>
+    </div>
+    <p>منصة مستقلة لرصد المؤشرات الاقتصادية السودانية. نوثّق ما هو موجود ونسلّط الضوء على ما هو ناقص — لأن الشفافية في البيانات أول خطوة نحو السياسات الصحيحة.</p>
+    <div class="home-mission">
+      <div class="hm-item">📊 توثيق البيانات الموجودة</div>
+      <div class="hm-item">🕳 كشف الفجوات البيانية</div>
+      <div class="hm-item">💬 منتدى نقاش متخصص</div>
+      <div class="hm-item">📚 مكتبة اقتصادية مفتوحة</div>
+    </div>
+  </div>
+  <div style="margin-bottom:14px;font-size:11px;color:var(--t3);font-weight:700;letter-spacing:.05em;text-transform:uppercase">المؤشرات الرئيسية</div>
+  <div class="live-indicators">
+    <div class="li-card" onclick="nav('trade')"><div class="li-lbl">الصادرات 2025</div><div class="li-val">$2.64B</div><div class="li-sub">مليار دولار</div><div class="li-trend tr-r">↓ 16% عن 2024</div><div class="li-bar" style="background:linear-gradient(90deg,var(--exp),rgba(10,124,78,.15))"></div></div>
+    <div class="li-card" onclick="nav('trade')"><div class="li-lbl">العجز التجاري 2025</div><div class="li-val">$3.86B</div><div class="li-sub">مليار دولار</div><div class="li-trend tr-r">↑ تضاعف عن 2024</div><div class="li-bar" style="background:linear-gradient(90deg,var(--imp),rgba(185,28,28,.15))"></div></div>
+    <div class="li-card" onclick="nav('macro')"><div class="li-lbl">التضخم السنوي</div><div class="li-val">~83%</div><div class="li-sub">تقدير 2024 — IMF</div><div class="li-trend tr-r">↓ من 400% عام 2020</div><div class="li-bar" style="background:linear-gradient(90deg,var(--amber),rgba(180,83,9,.15))"></div></div>
+    <div class="li-card" onclick="nav('macro')"><div class="li-lbl">سعر الصرف الموازي</div><div class="li-val">~1,100</div><div class="li-sub">جنيه / دولار (تقدير)</div><div class="li-trend tr-y">⚠ بيانات غير رسمية</div><div class="li-bar" style="background:linear-gradient(90deg,var(--bal),rgba(29,78,216,.15))"></div></div>
+    <div class="li-card" onclick="nav('gaps')"><div class="li-lbl">آخر تعداد سكاني</div><div class="li-val">2008</div><div class="li-sub">منذ 17 عاماً</div><div class="li-trend tr-r">⚠ فجوة حرجة</div><div class="li-bar" style="background:linear-gradient(90deg,#dc2626,rgba(220,38,38,.15))"></div></div>
+    <div class="li-card" onclick="nav('gaps')"><div class="li-lbl">المؤشرات الموثّقة</div><div class="li-val">47</div><div class="li-sub">من أصل 120+ مطلوبة</div><div class="li-trend tr-r">73 مؤشراً ناقصاً</div><div class="li-bar" style="background:linear-gradient(90deg,var(--navy),rgba(27,58,107,.15))"></div></div>
+  </div>
+  <div style="margin-bottom:12px;font-size:11px;color:var(--t3);font-weight:700;letter-spacing:.05em;text-transform:uppercase">استكشف البيانات</div>
+  <div class="quick-nav">
+    <div class="qn-card" onclick="nav('trade')"><div class="qn-ic">📦</div><div class="qn-t">مستكشف التجارة</div><div class="qn-s">صادرات · واردات · ميزان</div></div>
+    <div class="qn-card" onclick="nav('market')"><div class="qn-ic">🛒</div><div class="qn-t">نبض السوق</div><div class="qn-s">أسعار السلع المحلية</div></div>
+    <div class="qn-card" onclick="nav('macro')"><div class="qn-ic">📊</div><div class="qn-t">المؤشرات الكلية</div><div class="qn-s">GDP · تضخم · صرف</div></div>
+    <div class="qn-card" onclick="nav('gaps')"><div class="qn-ic">🕳</div><div class="qn-t">خريطة الفجوات</div><div class="qn-s">ما هو ناقص ولماذا</div></div>
+  </div>
+</div>
+
+<!-- TRADE -->
+<div class="pg" id="pg-trade">
+  <div class="page-title">📦 مستكشف التجارة الخارجية السودانية</div>
+  <div class="page-sub">بيانات CBOS — قاعدة بيانات تراكمية تتوسع مع كل ملف جديد</div>
+  <div class="te-filters">
+    <div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px">🔍 خيارات الاستكشاف</div>
+    <div class="te-frow">
+      <div class="fg"><label>نوع البيانات</label>
+        <div class="seg" id="seg-t">
+          <button class="on-e" onclick="setT('exp',this)">📤 صادرات</button>
+          <button onclick="setT('imp',this)">📥 واردات</button>
+          <button onclick="setT('bal',this)">⚖ الميزان</button>
+        </div>
+      </div>
+      <div class="fg"><label>عرض حسب</label>
+        <div class="seg" id="seg-v">
+          <button class="on" onclick="setV('commodity',this)">📦 السلعة</button>
+          <button onclick="setV('country',this)">🌍 الدولة</button>
+          <button onclick="setV('time',this)">📅 الزمن</button>
+        </div>
+      </div>
+      <div class="fg" id="fg-com"><label>السلعة</label><select id="s-com" onchange="teRun()"><option value="all">— كل السلع —</option></select></div>
+      <div class="fg" id="fg-ctr"><label>الدولة</label><select id="s-ctr" onchange="teRun()"><option value="all">— كل الدول —</option></select></div>
+      <div class="fg"><label>السنة</label><select id="s-yr" onchange="teRun()"></select></div>
+      <div class="fg"><label>الفترة</label>
+        <select id="s-per" onchange="teRun()">
+          <option value="monthly">شهري</option>
+          <option value="quarterly">ربع سنوي</option>
+        </select>
+      </div>
+      <div class="fg" style="flex-direction:row;align-items:flex-end;gap:5px">
+        <button class="btn btn-ghost" onclick="teDL()">⬇ CSV</button>
+      </div>
+    </div>
+  </div>
+  <div class="te-content">
+    <div class="card">
+      <div class="card-hdr">
+        <div><div class="card-title" id="te-title">الصادرات حسب السلعة — 2025</div><div style="font-size:10px;color:var(--t3);margin-top:2px">القيمة بالمليار / المليون / الألف دولار | CBOS — بيانات أولية</div></div>
+        <div class="vt-grp">
+          <button class="vt on" id="vt-tbl" onclick="teShowView('table')">📋 جدول</button>
+          <button class="vt" id="vt-bar" onclick="teShowView('bar')">▊ أعمدة</button>
+          <button class="vt" id="vt-line" onclick="teShowView('line')">╱ خطي</button>
+          <button class="vt" id="vt-pie" onclick="teShowView('pie')">◍ دائري</button>
+        </div>
+      </div>
+      <div id="te-tbl-view" class="tbl-wrap"><table class="dt"><thead id="te-thead"></thead><tbody id="te-tbody"></tbody></table></div>
+      <div id="te-chart-view" class="chart-area" style="display:none"><canvas id="te-chart"></canvas></div>
+      <div class="src-note">⚠ بيانات أولية من قوات الجمارك السودانية عبر CBOS. لا تشمل التجارة غير الرسمية.</div>
+    </div>
+    <div class="te-right">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">قاعدة البيانات</div></div>
+        <div class="card-body">
+          <div class="stat-pill"><span class="sp-l">السنوات المتاحة</span><span class="sp-v" id="te-years-count">2</span></div>
+          <div class="stat-pill"><span class="sp-l">إجمالي السجلات</span><span class="sp-v" id="te-records">48</span></div>
+          <div class="stat-pill"><span class="sp-l">آخر تحديث</span><span class="sp-v" id="te-last-update">مايو 2026</span></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:8px;margin-bottom:4px;font-weight:600">السنوات المحمّلة</div>
+          <div class="db-years" id="te-year-chips"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">مقارنات سريعة</div></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:5px">
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('top-exp')">أكبر 10 صادرات 2025</button>
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('top-imp')">أكبر 10 واردات 2025</button>
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('exp-ctr')">أهم وجهات التصدير</button>
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('imp-ctr')">أهم مصادر الاستيراد</button>
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('balance')">الميزان 2015–2025</button>
+          <button class="btn btn-ghost" style="text-align:right;font-size:11px" onclick="teQuick('compare')">مقارنة 2024 vs 2025</button>
+        </div>
+      </div>
+      <div class="card admin-upload" id="te-upload">
+        <div class="card-hdr"><div class="card-title">📁 رفع بيانات CBOS</div><span style="font-size:10px;color:var(--imp);font-weight:700">إدارة</span></div>
+        <div class="card-body">
+          <div class="dz" id="te-dz" onclick="document.getElementById('te-file').click()" ondragover="dzOver(event,'te-dz')" ondragleave="dzLeave('te-dz')" ondrop="teDzDrop(event)">
+            <div class="dz-ic">📊</div><div class="dz-t">اسحب ملف PDF/CSV هنا</div>
+            <div class="dz-s">يقبل تقارير CBOS الفصلية — يُضاف للقاعدة التراكمية</div>
+          </div>
+          <input type="file" id="te-file" accept=".pdf,.csv" style="display:none" onchange="teLoadFile(event)">
+          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:10px" onclick="teDLTemplate()">⬇ نموذج CSV</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="teDLAll()">⬇ تصدير الكل</button>
+          </div>
+          <div id="te-loaded-files"></div>
+          <div class="note" style="margin-top:8px">📌 كل ملف يُرفع يُضاف للقاعدة — لا استبدال للبيانات السابقة.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MARKET PRICES -->
+<div class="pg" id="pg-market">
+  <div class="page-title">🛒 نبض السوق السوداني</div>
+  <div class="page-sub">أسعار السلع الأساسية في الأسواق السودانية</div>
+  <div class="te-filters" style="margin-bottom:14px">
+    <div class="te-frow">
+      <div class="fg"><label>الولاية</label>
+        <select id="mp-state" onchange="mpRun()">
+          <option value="all">— كل الولايات —</option>
+          <option value="khartoum">الخرطوم</option>
+          <option value="kassala">كسلا</option>
+          <option value="redsea">البحر الأحمر</option>
+          <option value="gadaref">القضارف</option>
+        </select>
+      </div>
+      <div class="fg"><label>السلعة</label>
+        <select id="mp-item" onchange="mpSelectByFilter()"></select>
+      </div>
+      <div class="fg"><label>الرسم</label>
+        <div class="seg">
+          <button class="on" id="mp-vt-line" onclick="mpSetChart('line',this)">╱ خطي</button>
+          <button id="mp-vt-bar" onclick="mpSetChart('bar',this)">▊ أعمدة</button>
+        </div>
+      </div>
+      <div class="fg" style="flex-direction:row;align-items:flex-end;gap:5px">
+        <button class="btn btn-ghost" onclick="mpDL()">⬇ CSV</button>
+      </div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:12px;align-items:start">
+    <div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-hdr"><div class="card-title">أسعار السلع الأساسية</div><span class="badge badge-w">بيانات تقديرية</span></div>
+        <div class="card-body">
+          <div class="note" style="margin-bottom:12px">⚠ الأسعار تقديرية من مصادر متعددة. بورتسودان مرجع مؤقت. الأسعار بالجنيه السوداني للكيلوجرام/اللتر.</div>
+          <div class="prices-grid" id="mp-grid"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title" id="mp-chart-title">تطور السعر — دقيق القمح 2025</div></div>
+        <div class="chart-area"><canvas id="mp-chart"></canvas></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">فجوة سعرية موثّقة</div></div>
+        <div class="card-body" style="font-size:11px;color:var(--t2);line-height:1.8">
+          <div class="stat-pill"><span class="sp-l">بورتسودان → شمال دارفور</span><span class="sp-v nc">+200-400%</span></div>
+          <div class="stat-pill"><span class="sp-l">بيانات ميدانية منتظمة</span><span class="sp-v nc">غير متوفرة</span></div>
+          <div style="font-size:10px;color:var(--t3);margin-top:8px">الهدف: توثيق الفجوة السعرية بين الخرطوم والولايات البعيدة عبر شبكة متطوعين.</div>
+        </div>
+      </div>
+      <div class="card admin-upload" id="mp-upload">
+        <div class="card-hdr"><div class="card-title">📁 رفع بيانات أسعار</div><span style="font-size:10px;color:var(--imp);font-weight:700">إدارة</span></div>
+        <div class="card-body">
+          <div class="dz" onclick="document.getElementById('mp-file').click()">
+            <div class="dz-ic">🛒</div><div class="dz-t">رفع ملف أسعار CSV</div>
+            <div class="dz-s">سلعة · سعر · مدينة · سوق · تاريخ</div>
+          </div>
+          <input type="file" id="mp-file" accept=".csv" style="display:none" onchange="mpLoadFile(event)">
+          <div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:10px" onclick="mpDLTemplate()">⬇ نموذج CSV</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="mpDLAllData()">⬇ تصدير الأسعار</button>
+          </div>
+          <div id="mp-files-list"></div>
+        </div>
+      </div>
+      <!-- Add new commodity -->
+      <div class="card admin-upload" id="mp-add-panel">
+        <div class="card-hdr"><div class="card-title">➕ إضافة سلعة / مدينة / سوق</div><span style="font-size:10px;color:var(--imp);font-weight:700">إدارة</span></div>
+        <div class="card-body">
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;color:var(--t3);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">إضافة سلعة جديدة</div>
+            <div style="display:flex;gap:6px">
+              <input id="new-item-name" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="اسم السلعة">
+              <input id="new-item-unit" style="width:70px;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="كجم">
+              <input id="new-item-price" type="number" style="width:90px;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="السعر">
+              <button class="btn btn-navy" style="font-size:11px" onclick="mpAddItem()">إضافة</button>
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;color:var(--t3);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">إضافة مدينة جديدة</div>
+            <div style="display:flex;gap:6px">
+              <input id="new-city-name" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="اسم المدينة">
+              <select id="new-city-state" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px">
+                <option value="">اختر الولاية</option>
+                <option>الخرطوم</option><option>كسلا</option><option>البحر الأحمر</option>
+                <option>القضارف</option><option>سنار</option><option>الجزيرة</option>
+                <option>النيل الأزرق</option><option>النيل الأبيض</option><option>شمال كردفان</option>
+                <option>جنوب كردفان</option><option>شمال دارفور</option><option>جنوب دارفور</option>
+                <option>وسط دارفور</option><option>غرب دارفور</option><option>شرق دارفور</option>
+                <option>نهر النيل</option><option>الولاية الشمالية</option><option>غرب كردفان</option>
+              </select>
+              <button class="btn btn-navy" style="font-size:11px" onclick="mpAddCity()">إضافة</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--t3);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">إضافة سوق جديد</div>
+            <div style="display:flex;gap:6px">
+              <input id="new-market-name" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="اسم السوق">
+              <input id="new-market-city" style="flex:1;padding:6px 10px;border:1px solid var(--border2);border-radius:6px;font-family:inherit;font-size:12px" placeholder="المدينة">
+              <button class="btn btn-navy" style="font-size:11px" onclick="mpAddMarket()">إضافة</button>
+            </div>
+          </div>
+          <div id="mp-added-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">مصادر البيانات</div></div>
+        <div class="card-body" style="font-size:11px;color:var(--t2);line-height:1.9">
+          <div>• WFP VAM Food Security Monitoring</div>
+          <div>• FAO GIEWS Country Briefs</div>
+          <div>• FEWS NET Sudan Price Bulletins</div>
+          <div>• متطوعون ميدانيون (قريباً)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MACRO -->
+<div class="pg" id="pg-macro">
+  <div class="page-title">📊 لوحة المؤشرات الاقتصادية الكلية</div>
+  <div class="page-sub">مؤشرات الاقتصاد الكلي السوداني من مصادرها الدولية الرسمية</div>
+  <div class="macro-grid">
+    <div class="macro-card"><div class="mc-lbl">GDP</div><div class="mc-val">~$34B</div><div class="mc-src">World Bank · 2021</div><div class="mc-status" style="color:var(--imp)">⚠ 2022-2025 غير متاح رسمياً</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--exp),rgba(10,124,78,.1))"></div></div>
+    <div class="macro-card"><div class="mc-lbl">معدل النمو</div><div class="mc-val">-2.5%</div><div class="mc-src">IMF تقدير · 2023</div><div class="mc-status" style="color:var(--imp)">تراجع متواصل منذ 2018</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--imp),rgba(185,28,28,.1))"></div></div>
+    <div class="macro-card"><div class="mc-lbl">التضخم السنوي</div><div class="mc-val">~83%</div><div class="mc-src">IMF تقدير · 2024</div><div class="mc-status" style="color:var(--amber)">↓ من ذروة 400% عام 2020</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--amber),rgba(180,83,9,.1))"></div></div>
+    <div class="macro-card"><div class="mc-lbl">الدين الخارجي</div><div class="mc-val">~$60B</div><div class="mc-src">World Bank · 2023</div><div class="mc-status" style="color:var(--imp)">~170% من GDP</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--navy),rgba(27,58,107,.1))"></div></div>
+    <div class="macro-card"><div class="mc-lbl">الاحتياطيات الأجنبية</div><div class="mc-val">&lt;$1B</div><div class="mc-src">IMF تقدير · 2023</div><div class="mc-status" style="color:var(--imp)">أقل من شهر واردات</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--imp),rgba(185,28,28,.1))"></div></div>
+    <div class="macro-card"><div class="mc-lbl">نصيب الفرد</div><div class="mc-val">~$720</div><div class="mc-src">World Bank · 2021</div><div class="mc-status" style="color:var(--imp)">من أدنى 20 دولة عالمياً</div><div class="mc-bar" style="background:linear-gradient(90deg,var(--gold),rgba(181,100,10,.1))"></div></div>
+  </div>
+  <div class="sec-title">سعر الصرف</div>
+  <div class="exr-table">
+    <div class="exr-card"><div class="exr-lbl">السعر الرسمي (SDG/USD)</div><div class="exr-val" style="color:var(--exp)">~600</div><div style="font-size:10px;color:var(--t4);margin-top:4px">CBOS — بيانات منقوصة</div></div>
+    <div class="exr-card"><div class="exr-lbl">السعر الموازي</div><div class="exr-val" style="color:var(--imp)">~1,100+</div><div style="font-size:10px;color:var(--t4);margin-top:4px">تقديرات · غير رسمي</div></div>
+    <div class="exr-card"><div class="exr-lbl">الفجوة بين السعرين</div><div class="exr-val" style="color:var(--amber)">~80%</div><div style="font-size:10px;color:var(--t4);margin-top:4px">فجوة بيانية حرجة</div></div>
+  </div>
+  <div class="note" style="margin-bottom:14px">⚠ سعر الصرف الموازي غير موثّق رسمياً. الأرقام تقديرية. هذه من أبرز الفجوات التي يرصدها المرصد.</div>
+  <div class="grid2">
+    <div class="card"><div class="card-hdr"><div class="card-title">التضخم التاريخي 2015–2024</div></div><div class="chart-area"><canvas id="inf-chart"></canvas></div></div>
+    <div class="card"><div class="card-hdr"><div class="card-title">GDP التاريخي (مليار $)</div></div><div class="chart-area"><canvas id="gdp-chart"></canvas></div></div>
+  </div>
+</div>
+
+<!-- FOOD SECURITY -->
+<div class="pg" id="pg-food">
+  <div class="page-title">🌾 لوحة الأمن الغذائي السوداني</div>
+  <div class="page-sub">رصد توفر الغذاء وفجوات الإمداد — FEWS NET / WFP / FAO</div>
+  <div class="fs-alert crit">🚨 <div><strong>أزمة غذاء حادة:</strong> السودان يواجه أسوأ أزمة غذاء في تاريخه — أكثر من 26 مليون شخص في حالة جوع حاد (IPC3+) وفق تقارير WFP 2024.</div></div>
+  <div class="fs-alert warn">⚠ <div><strong>فجوة بيانية:</strong> البيانات الميدانية لأسعار الغذاء في ولايات النزاع متقطعة أو معدومة منذ أبريل 2023.</div></div>
+  <div class="fs-alert info">ℹ <div><strong>المصادر:</strong> FEWS NET + WFP VAM + FAO GIEWS — تعتمد على عينات محدودة بسبب صعوبة الوصول.</div></div>
+  <div class="sec-title" style="margin-top:14px">مستوى الأمن الغذائي بالولايات — IPC (تقدير WFP 2024)</div>
+  <div class="state-grid">
+    <div class="state-card"><div class="sc-name">شمال دارفور</div><span class="sc-level sl-crit">IPC 4 — طارئ</span></div>
+    <div class="state-card"><div class="sc-name">الجزيرة</div><span class="sc-level sl-crit">IPC 4 — طارئ</span></div>
+    <div class="state-card"><div class="sc-name">الخرطوم</div><span class="sc-level sl-crit">IPC 3-4</span></div>
+    <div class="state-card"><div class="sc-name">كسلا</div><span class="sc-level sl-ser">IPC 3 — أزمة</span></div>
+    <div class="state-card"><div class="sc-name">القضارف</div><span class="sc-level sl-ser">IPC 3</span></div>
+    <div class="state-card"><div class="sc-name">البحر الأحمر</div><span class="sc-level sl-mod">IPC 2-3</span></div>
+    <div class="state-card"><div class="sc-name">نهر النيل</div><span class="sc-level sl-mod">IPC 2</span></div>
+    <div class="state-card"><div class="sc-name">الولاية الشمالية</div><span class="sc-level sl-ok">IPC 1-2</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-hdr"><div class="card-title">أسعار غذاء مرجعية — بورتسودان</div></div>
+      <div class="card-body">
+        <div class="stat-pill"><span class="sp-l">دقيق القمح (كجم)</span><span class="sp-v">~1,200 SDG</span></div>
+        <div class="stat-pill"><span class="sp-l">السكر (كجم)</span><span class="sp-v">~900 SDG</span></div>
+        <div class="stat-pill"><span class="sp-l">زيت الطعام (لتر)</span><span class="sp-v">~2,500 SDG</span></div>
+        <div class="stat-pill"><span class="sp-l">الأرز (كجم)</span><span class="sp-v">~1,100 SDG</span></div>
+        <div class="note" style="margin-top:10px">⚠ أسعار تقديرية — الأسعار في مناطق النزاع أعلى بكثير.</div>
+      </div>
+    </div>
+    <div class="card"><div class="card-hdr"><div class="card-title">فجوات بيانات الأمن الغذائي</div></div>
+      <div class="card-body">
+        <div class="stat-pill"><span class="sp-l">مسح أسعار منتظم وطني</span><span class="sp-v nc">غير متاح</span></div>
+        <div class="stat-pill"><span class="sp-l">إنتاج زراعي 2023-24</span><span class="sp-v nc">تقديري فقط</span></div>
+        <div class="stat-pill"><span class="sp-l">بيانات ولايات النزاع</span><span class="sp-v nc">مقطوعة</span></div>
+        <div class="stat-pill"><span class="sp-l">التغذية والسوء التغذوي</span><span class="sp-v" style="color:var(--amber)">جزئية</span></div>
+        <div class="stat-pill"><span class="sp-l">مخزونات الحبوب</span><span class="sp-v nc">لا توجد</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAPS -->
+<div class="pg" id="pg-gaps">
+  <div class="page-title">🕳 خريطة الفجوات البيانية</div>
+  <div class="page-sub">رصد منهجي للبيانات الاقتصادية الناقصة — ما لا يُقاس لا يُصلَح</div>
+  <div class="gap-hero">
+    <h3 style="font-size:16px;font-weight:700;color:#991b1b;margin-bottom:5px">🕳 73 فجوة بيانية موثّقة في الاقتصاد السوداني</h3>
+    <p style="font-size:12px;color:var(--t2);line-height:1.7">من بين أكثر من 120 مؤشراً اقتصادياً أساسياً، لا يتوفر في السودان سوى 47 مؤشراً بشكل منتظم. الفجوة تعني: سياسات مبنية على تقديرات وقرارات استثمارية في ظلام.</p>
+  </div>
+  <div class="gap-legend">
+    <div class="gl"><div class="gld" style="background:#86efac"></div>بيانات كاملة وموثوقة</div>
+    <div class="gl"><div class="gld" style="background:#fde68a"></div>بيانات منقوصة / تقديرية</div>
+    <div class="gl"><div class="gld" style="background:#fca5a5"></div>بيانات مفقودة</div>
+    <div class="gl"><div class="gld" style="background:#e5e7eb"></div>لا تُجمع أصلاً</div>
+  </div>
+  <div class="sec-title">مصفوفة توفر البيانات (2018–2024)</div>
+  <div class="gap-matrix">
+    <table class="gmt">
+      <thead><tr><th>المؤشر</th><th>2018</th><th>2019</th><th>2020</th><th>2021</th><th>2022</th><th>2023</th><th>2024</th><th>الحالة</th></tr></thead>
+      <tbody id="gap-tbody"></tbody>
+    </table>
+  </div>
+  <div class="sec-title">أبرز الفجوات الحرجة</div>
+  <div class="gap-cards" id="gap-cards"></div>
+</div>
+
+<!-- FORUM -->
+<div class="pg" id="pg-forum">
+  <div class="page-title">💬 منتدى النقاش الاقتصادي</div>
+  <div class="page-sub">فضاء علمي مفتوح للتحليل والنقاش حول الاقتصاد السوداني</div>
+  <div class="forum-layout">
+    <div>
+      <div class="compose">
+        <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px">أضف مساهمتك</div>
+        <input id="f-title" class="fi" placeholder="عنوان مساهمتك أو سؤالك..." style="height:36px">
+        <textarea id="f-body" class="fi" rows="3" placeholder="اكتب تحليلك — الاستشهاد بالمصادر يُقوّي مساهمتك..."></textarea>
+        <div class="fi-row">
+          <select id="f-topic" class="fi" style="flex:1;height:32px;margin-bottom:0">
+            <option value="macro">الاقتصاد الكلي</option>
+            <option value="monetary">السياسة النقدية</option>
+            <option value="trade">التجارة والصادرات</option>
+            <option value="food">الأمن الغذائي</option>
+            <option value="gaps">فجوات البيانات</option>
+            <option value="policy">السياسات</option>
+            <option value="other">أخرى</option>
+          </select>
+          <input id="f-author" class="fi" placeholder="اسمك / لقبك" style="flex:1;height:32px;margin-bottom:0">
+          <button class="btn btn-navy" onclick="fPost()">نشر</button>
+        </div>
+      </div>
+      <div id="forum-posts"></div>
+    </div>
+    <div class="forum-side">
+      <div class="card"><div class="card-hdr"><div class="card-title">المحاور</div></div><div class="card-body" id="forum-topics"></div></div>
+      <div class="card"><div class="card-hdr"><div class="card-title">إحصائيات</div></div>
+        <div class="card-body">
+          <div class="stat-pill"><span class="sp-l">النقاشات</span><span class="sp-v" id="f-count">0</span></div>
+          <div class="stat-pill"><span class="sp-l">المساهمون</span><span class="sp-v" id="f-authors">0</span></div>
+          <div class="stat-pill"><span class="sp-l">أنشط محور</span><span class="sp-v" id="f-top-topic">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div class="pg" id="pg-library">
+  <div class="page-title">📚 المكتبة الاقتصادية السودانية</div>
+  <div class="page-sub">تقارير ودراسات وبيانات مفتوحة للجميع</div>
+  <div class="lib-search-wrap">
+    <input class="lib-search" id="lib-q" placeholder="ابحث في المكتبة..." oninput="libSearch()">
+    <button class="btn btn-ghost" onclick="libSearch()">بحث</button>
+  </div>
+  <div class="lib-grid" id="lib-grid"></div>
+</div>
+
+<!-- ABOUT -->
+<div class="pg" id="pg-about">
+  <div class="about-hero">
+    <h2>🔭 المرصد الاقتصادي السوداني</h2>
+    <p>مبادرة مستقلة لتوثيق المشهد الاقتصادي السوداني بشفافية وموضوعية — ما هو موجود وما هو ناقص.</p>
+  </div>
+  <div class="values-grid">
+    <div class="val-card"><div class="val-ic">🔍</div><div class="val-h">الشفافية</div><div class="val-p">كل مؤشر مرفق بمصدره وتاريخه ومستوى موثوقيته.</div></div>
+    <div class="val-card"><div class="val-ic">📐</div><div class="val-h">الموضوعية</div><div class="val-p">نعرض البيانات كما هي بما فيها الفجوات. لا تجميل.</div></div>
+    <div class="val-card"><div class="val-ic">🤝</div><div class="val-h">الاستقلالية</div><div class="val-p">مبادرة مستقلة غير مرتبطة بجهة حكومية أو حزبية.</div></div>
+  </div>
+  <div class="contact-card">
+    <div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px">تواصل معنا</div>
+    <div class="cf"><label>الاسم</label><input type="text" placeholder="اسمك"></div>
+    <div class="cf"><label>البريد</label><input type="email" placeholder="email@example.com"></div>
+    <div class="cf"><label>الموضوع</label>
+      <select><option>مساهمة ببيانات</option><option>ملاحظة على مؤشر</option><option>اقتراح</option><option>شراكة</option></select>
+    </div>
+    <div class="cf"><label>الرسالة</label><textarea placeholder="اكتب رسالتك..."></textarea></div>
+    <button class="btn btn-navy" style="width:100%" onclick="alert('شكراً لتواصلك — سيتم الرد قريباً.')">إرسال</button>
+  </div>
+</div>
+
+</div><!-- main -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="ext-modal">
+  <div class="modal">
+    <h3>📊 مراجعة البيانات المستخرجة من PDF</h3>
+    <div style="font-size:11px;color:var(--t3);margin-bottom:10px">راجع وصحّح — ستُضاف للقاعدة التراكمية</div>
+    <div class="raw-preview" id="ext-raw-preview">...</div>
+    <div class="ext-grid">
+      <div class="ef"><label>السنة</label><input id="ex-year" type="number" min="2015" max="2030" value="2024"></div>
+      <div class="ef"><label>نوع التقرير</label><select id="ex-type"><option value="annual">سنوي</option><option value="q4">Q4</option><option value="q3">Q3</option><option value="q2">Q2</option><option value="q1">Q1</option></select></div>
+      <div class="ef"><label>إجمالي الصادرات (ألف $)</label><input id="ex-exp" type="number" placeholder="مثال: 2639444"></div>
+      <div class="ef"><label>إجمالي الواردات (ألف $)</label><input id="ex-imp" type="number" placeholder="مثال: 6495991"></div>
+      <div class="ef"><label>أكبر صادرة — الاسم</label><input id="ex-c1" placeholder="الذهب"></div>
+      <div class="ef"><label>قيمتها (ألف $)</label><input id="ex-v1" type="number"></div>
+      <div class="ef"><label>الصادرة الثانية</label><input id="ex-c2" placeholder="الثروة الحيوانية"></div>
+      <div class="ef"><label>قيمتها (ألف $)</label><input id="ex-v2" type="number"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal('ext-modal')">إلغاء</button>
+      <button class="btn btn-navy" onclick="extConfirm()">✅ حفظ في القاعدة</button>
+    </div>
+  </div>
+</div>
+<script>
+// ══ NUMBER FORMATTING ══
+function fmt(v){
+  const a=Math.abs(v),s=v<0?'-':'';
+  if(a>=1000000) return s+'$'+(a/1000000).toFixed(2)+'B';
+  if(a>=1000) return s+'$'+(a/1000).toFixed(0)+'M';
+  return s+'$'+Math.round(a).toLocaleString()+'K';
+}
+function fmtBal(v){
+  const a=Math.abs(v)/1000000,s=v<0?'-':'+';
+  return s+'$'+a.toFixed(2)+'B';
+}
+
+// ══ DATABASE ══
+const DB_KEY='seo_obs_v2';
+const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const QN=['Q1 يناير–مارس','Q2 أبريل–يونيو','Q3 يوليو–سبتمبر','Q4 أكتوبر–ديسمبر'];
+const CLRS=['#1b3a6b','#2952a3','#0a7c4e','#b91c1c','#b5640a','#6b21a8','#0e7490','#be185d','#4d7c0f','#0369a1','#92400e','#1e40af'];
+const RBDG={'عربي':'r-arab','إفريقيا':'r-afr','آسيا':'r-asia','أوروبا':'r-eur','صناعي':'r-ind'};
+
+const SEED={
+  annual:[
+    {y:'2015',e:3169011,i:9509115},{y:'2016',e:3093639,i:8310607},{y:'2017',e:4100381,i:9133668},
+    {y:'2018',e:3478333,i:7850081},{y:'2019',e:3734657,i:9290528},{y:'2020',e:3802573,i:9837676},
+    {y:'2021',e:5027385,i:9894046},{y:'2022',e:4357418,i:11094849},{y:'2023',e:3628350,i:7498505},
+    {y:'2024',e:3134487,i:4911166},{y:'2025',e:2639445,i:6495992},
+  ],
+  years:{
+    '2024':{
+      monthly_e:[268592,283364,367076,224968,311538,248186,330485,228383,226342,222843,225029,197681],
+      monthly_i:[276076,243578,475557,393605,471963,331703,336949,330967,410689,491738,589156,559184],
+      quarterly_e:[919032,784692,785210,645553],quarterly_i:[1640078,1078605,1197272,995211],
+      exp_com:[
+        {n:'الذهب',v:1570211,p:50.1},{n:'الثروة الحيوانية',v:530501,p:16.9},
+        {n:'السمسم',v:330276,p:10.5},{n:'الفول السوداني',v:292984,p:9.3},
+        {n:'سلع زراعية أخرى',v:94112,p:3.0},{n:'الصمغ العربي',v:82207,p:2.6},
+        {n:'القطن',v:82382,p:2.6},{n:'حب البطيخ',v:77587,p:2.5},
+        {n:'الأعلاف',v:32652,p:1.0},{n:'الكبكبي',v:15591,p:0.5},
+        {n:'المعادن',v:8575,p:0.3},{n:'سلع مصنعة',v:5916,p:0.2},
+      ],
+      imp_com:[
+        {n:'مواد غذائية',v:1763745,p:35.9},{n:'منتجات بترولية',v:890802,p:18.1},
+        {n:'سلع مصنعة',v:666523,p:13.6},{n:'منتجات كيماوية',v:489571,p:10.0},
+        {n:'آلات ومعدات',v:447823,p:9.1},{n:'وسائل نقل',v:329086,p:6.7},
+        {n:'منسوجات',v:208160,p:4.2},{n:'مشروبات وتبغ',v:58763,p:1.2},
+        {n:'مواد خام أخرى',v:46846,p:1.0},{n:'أخرى',v:9846,p:0.2},
+      ],
+      exp_ctr:[
+        {n:'الإمارات',v:1664758,r:'عربي'},{n:'السعودية',v:437419,r:'عربي'},
+        {n:'الصين',v:287162,r:'آسيا'},{n:'مصر',v:276977,r:'إفريقيا'},
+        {n:'الهند',v:140322,r:'آسيا'},{n:'جنوب السودان',v:47012,r:'إفريقيا'},
+        {n:'باكستان',v:41184,r:'آسيا'},{n:'تركيا',v:34125,r:'أوروبا'},
+        {n:'عُمان',v:32731,r:'عربي'},{n:'قطر',v:11977,r:'عربي'},
+      ].sort((a,b)=>b.v-a.v),
+      imp_ctr:[
+        {n:'الإمارات',v:955680,r:'عربي'},{n:'الصين',v:911892,r:'آسيا'},
+        {n:'مصر',v:728033,r:'إفريقيا'},{n:'الهند',v:610429,r:'آسيا'},
+        {n:'السعودية',v:296405,r:'عربي'},{n:'روسيا',v:241764,r:'أوروبا'},
+        {n:'تركيا',v:208569,r:'أوروبا'},{n:'اليابان',v:135004,r:'صناعي'},
+        {n:'كوريا الجنوبية',v:31736,r:'آسيا'},{n:'إندونيسيا',v:25268,r:'آسيا'},
+      ].sort((a,b)=>b.v-a.v),
+    },
+    '2025':{
+      monthly_e:[206339,218612,279156,254804,253198,142806,206510,130050,94715,383158,190091,280007],
+      monthly_i:[451284,395904,465641,431450,494271,403193,550331,527136,559201,773159,790168,654255],
+      quarterly_e:[704107,490808,431275,853256],quarterly_i:[1312829,1328514,1636668,2217582],
+      exp_com:[
+        {n:'الذهب',v:1536253,p:58.2,mon:[136468,93885,256173,30173,64209,115447,75900,143000,171499,184100,137200,128200]},
+        {n:'الثروة الحيوانية',v:466264,p:17.7,mon:[55928,40262,81548,19977,28432,40790,23606,37382,38360,41543,31243,32000]},
+        {n:'السمسم',v:333709,p:12.6,mon:[58998,35551,24988,22935,19855,21278,20794,28901,18427,24079,25801,32101]},
+        {n:'الصمغ العربي',v:78170,p:3.0,mon:[3955,3442,4118,4294,4613,9587,12250,16500,6893,8043,2499,1977]},
+        {n:'القطن',v:64101,p:2.4,mon:[9732,6458,3134,4248,1985,5341,3582,10500,5168,4844,4565,4543]},
+        {n:'حب البطيخ',v:59187,p:2.2,mon:[3199,3714,5915,4104,3471,3624,620,10400,7017,5941,8650,2531]},
+        {n:'الأعلاف',v:35223,p:1.3,mon:[6180,1178,2965,1099,4465,5546,300,1531,3300,2918,3805,1936]},
+        {n:'سلع زراعية أخرى',v:31223,p:1.2,mon:[2271,3350,2594,3417,1894,2828,995,4221,2600,1959,2815,2279]},
+        {n:'المعادن',v:11622,p:0.4,mon:[1417,0,1189,0,0,0,0,0,108,0,10,0]},
+        {n:'سلع مصنعة',v:6989,p:0.3,mon:[412,209,207,227,324,137,197,142,82,4307,382,364]},
+        {n:'الفول السوداني',v:2040,p:0.1,mon:[1,242,82,40,40,0,0,0,79,563,757,235]},
+        {n:'صادرات أخرى',v:9646,p:0.4,mon:[1428,56,215,2849,95,44,4096,89,358,135,236,44]},
+      ],
+      imp_com:[
+        {n:'مواد غذائية',v:1854972,p:28.6,mon:[189357,160532,209047,184835,186796,134908,101547,148905,151238,133542,128421,125843]},
+        {n:'سلع مصنعة',v:949405,p:14.6,mon:[105435,99216,107455,69529,68670,80910,77764,77044,69737,85206,57626,50812]},
+        {n:'آلات ومعدات',v:904262,p:13.9,mon:[89804,100860,84420,90482,87838,93227,60059,95574,53858,66113,40826,41200]},
+        {n:'منتجات بترولية',v:807754,p:12.4,mon:[40834,229143,173427,27037,32726,31980,29711,12597,24714,27454,44839,133293]},
+        {n:'منتجات كيماوية',v:780349,p:12.0,mon:[67576,68888,95846,73120,66120,86962,60555,58786,46854,64454,41406,49781]},
+        {n:'وسائل نقل',v:676976,p:10.4,mon:[99572,80369,60784,73087,52222,68582,41394,56064,44729,38481,43054,18637]},
+        {n:'منسوجات',v:357283,p:5.5,mon:[39822,30372,25386,23915,18870,37389,25204,34513,29308,37575,31436,23494]},
+        {n:'مواد خام أخرى',v:85085,p:1.3,mon:[7092,10530,9310,7233,8006,6009,4584,4657,5071,7977,7754,6862]},
+        {n:'مشروبات وتبغ',v:54980,p:0.8,mon:[5896,5303,3918,6914,3527,6293,3742,4209,5083,3557,3124,3413]},
+        {n:'أخرى',v:24927,p:0.4,mon:[3898,1782,1761,2895,3971,4158,483,863,1975,1220,712,1209]},
+      ],
+      exp_ctr:[
+        {n:'الإمارات',v:926232,r:'عربي'},{n:'مصر',v:718875,r:'إفريقيا'},
+        {n:'السعودية',v:409674,r:'عربي'},{n:'عُمان',v:81879,r:'عربي'},
+        {n:'قطر',v:76205,r:'عربي'},{n:'الهند',v:70317,r:'آسيا'},
+        {n:'الصين',v:53724,r:'آسيا'},{n:'إثيوبيا',v:31960,r:'إفريقيا'},
+        {n:'باكستان',v:30638,r:'آسيا'},{n:'جنوب السودان',v:30616,r:'إفريقيا'},
+        {n:'تركيا',v:37921,r:'أوروبا'},{n:'فرنسا',v:42239,r:'أوروبا'},
+        {n:'الأردن',v:23935,r:'عربي'},{n:'لبنان',v:21573,r:'عربي'},
+      ].sort((a,b)=>b.v-a.v),
+      imp_ctr:[
+        {n:'الصين',v:1601307,r:'آسيا'},{n:'مصر',v:959690,r:'إفريقيا'},
+        {n:'الإمارات',v:710228,r:'عربي'},{n:'الهند',v:657485,r:'آسيا'},
+        {n:'السعودية',v:555386,r:'عربي'},{n:'روسيا',v:409307,r:'أوروبا'},
+        {n:'اليابان',v:202582,r:'صناعي'},{n:'تركيا',v:172240,r:'أوروبا'},
+        {n:'كوريا الجنوبية',v:80346,r:'آسيا'},{n:'ألمانيا',v:80182,r:'صناعي'},
+        {n:'تايلاند',v:75414,r:'آسيا'},{n:'كندا',v:66986,r:'صناعي'},
+      ].sort((a,b)=>b.v-a.v),
+    }
+  },
+  sources:[
+    {year:'2024',file:'CBOS Q4 2024',added:'2026-05-13'},
+    {year:'2025',file:'CBOS Q4 2025',added:'2026-05-13'},
+  ]
+};
+
+function loadDB(){
+  try{
+    const s=JSON.parse(localStorage.getItem(DB_KEY)||'{}');
+    if(!s.years) return JSON.parse(JSON.stringify(SEED));
+    const m=JSON.parse(JSON.stringify(SEED));
+    Object.keys(s.years||{}).forEach(yr=>{m.years[yr]=s.years[yr];});
+    if(s.sources) m.sources=[...SEED.sources,...(s.sources||[]).filter(x=>!SEED.sources.find(y=>y.year===x.year&&y.file===x.file))];
+    return m;
+  }catch(e){return JSON.parse(JSON.stringify(SEED));}
+}
+function saveDB(){
+  const toSave={years:{},sources:DB.sources.filter(s=>!SEED.sources.find(x=>x.year===s.year&&x.file===s.file))};
+  Object.keys(DB.years).forEach(yr=>{if(!SEED.years[yr]) toSave.years[yr]=DB.years[yr];});
+  localStorage.setItem(DB_KEY,JSON.stringify(toSave));
+}
+let DB=loadDB();
+
+// ══ NAV ══
+let isAdmin=false;
+function nav(pg){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nt').forEach(n=>n.classList.remove('on'));
+  document.getElementById('pg-'+pg).classList.add('on');
+  document.querySelectorAll('.nt').forEach(n=>{if(n.getAttribute('onclick')?.includes("'"+pg+"'"))n.classList.add('on');});
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(pg==='trade'){teInit();setTimeout(()=>teRun(),50);}
+  if(pg==='market') mpInit();
+  if(pg==='macro') macroInit();
+  if(pg==='forum') fRender();
+  if(pg==='library') libRender();
+  if(pg==='gaps') gapsRender();
+}
+function toggleAdmin(){
+  if(isAdmin){isAdmin=false;document.querySelectorAll('.admin-upload').forEach(el=>el.classList.remove('show'));return;}
+  if(prompt('كلمة المرور للإدارة:')==='cbos2025'){
+    isAdmin=true;document.querySelectorAll('.admin-upload').forEach(el=>el.classList.add('show'));
+    alert('✅ وضع الإدارة مفعّل');
+  }
+}
+
+// ══ TRADE EXPLORER ══
+let TS={type:'exp',view:'commodity',yr:'2025',per:'monthly',chart:'table'};
+let TCHART=null,tLL=[],tLD=[],tLD2=[];
+
+function teInit(){
+  const sc=document.getElementById('s-com');
+  const yr=TS.yr==='annual'?'2025':TS.yr;
+  const yrD=DB.years[yr]||DB.years['2025'];
+  const allC=[...new Map([...(yrD.exp_com||[]),...(yrD.imp_com||[])].map(x=>[x.n,x])).values()];
+  sc.innerHTML='<option value="all">— كل السلع —</option>';
+  allC.forEach(c=>sc.innerHTML+=`<option value="${c.n}">${c.n}</option>`);
+  const sct=document.getElementById('s-ctr');
+  const allCtrs=[...new Map([...(yrD.exp_ctr||[]),...(yrD.imp_ctr||[])].map(x=>[x.n,x])).values()].sort((a,b)=>a.n.localeCompare(b.n,'ar'));
+  sct.innerHTML='<option value="all">— كل الدول —</option>';
+  allCtrs.forEach(c=>sct.innerHTML+=`<option value="${c.n}">${c.n}</option>`);
+  // Year select
+  const yrs=Object.keys(DB.years).sort((a,b)=>b-a);
+  document.getElementById('s-yr').innerHTML=yrs.map(y=>`<option value="${y}">${y}</option>`).join('')+'<option value="annual">2015–2025 سنوي</option>';
+  teUpdateDB();
+}
+function teUpdateDB(){
+  const yrs=Object.keys(DB.years);
+  document.getElementById('te-years-count').textContent=yrs.length;
+  document.getElementById('te-records').textContent=yrs.reduce((s,y)=>s+(DB.years[y].exp_com?.length||0)+(DB.years[y].imp_com?.length||0)+(DB.years[y].exp_ctr?.length||0)+(DB.years[y].imp_ctr?.length||0)+24,0);
+  document.getElementById('te-last-update').textContent=DB.sources.slice(-1)[0]?.added?.slice(0,7)||'—';
+  document.getElementById('te-year-chips').innerHTML=yrs.map(y=>`<span class="ychip on">${y}</span>`).join('');
+}
+function setT(t,btn){
+  TS.type=t;
+  document.querySelectorAll('#seg-t button').forEach(b=>b.className='');
+  btn.className='on-'+t[0];
+  TS.yr=document.getElementById('s-yr')?.value||'2025';
+  TS.per=document.getElementById('s-per')?.value||'monthly';
+  teRun();
+}
+function setV(v,btn){
+  TS.view=v;
+  document.querySelectorAll('#seg-v button').forEach(b=>b.className='');
+  btn.className='on';
+  TS.yr=document.getElementById('s-yr')?.value||'2025';
+  TS.per=document.getElementById('s-per')?.value||'monthly';
+  teRun();
+}
+function teShowView(v){
+  TS.chart=v;
+  ['tbl','bar','line','pie'].forEach(x=>document.getElementById('vt-'+x).className='vt'+(x===v.replace('table','tbl')?' on':''));
+  const tv=document.getElementById('te-tbl-view'),cv=document.getElementById('te-chart-view');
+  if(v==='table'){tv.style.display='';cv.style.display='none';}
+  else{tv.style.display='none';cv.style.display='block';if(TS.type==='bal') tDrawBal(v);else tDrawChart(v);}
+}
+
+function teRun(){
+  TS.yr=document.getElementById('s-yr').value;
+  TS.per=document.getElementById('s-per').value;
+  const selC=document.getElementById('s-com').value;
+  const selCtr=document.getElementById('s-ctr').value;
+  const yrD=TS.yr==='annual'?null:DB.years[TS.yr];
+  const isExp=TS.type==='exp';let L=[],D=[],D2=[],rows=[],title='';
+
+  if(TS.type==='bal'){
+    if(TS.yr==='annual'){title='الميزان التجاري 2015–2025';L=DB.annual.map(r=>r.y);D=DB.annual.map(r=>r.e);D2=DB.annual.map(r=>r.i);rows=DB.annual.map(r=>({type:'bal',lb:r.y,e:r.e,i:r.i,b:r.e-r.i}));}
+    else{const src=TS.per==='monthly'?yrD.monthly_e:yrD.quarterly_e,srcI=TS.per==='monthly'?yrD.monthly_i:yrD.quarterly_i,lbs=TS.per==='monthly'?MN:QN;title=`الميزان التجاري ${TS.yr}`;L=lbs;D=src;D2=srcI;rows=lbs.map((l,i)=>({type:'bal',lb:l,e:src[i]||0,i:srcI[i]||0,b:(src[i]||0)-(srcI[i]||0)}));}
+    document.getElementById('te-title').textContent=title;tLL=L;tLD=D;tLD2=D2;
+    tRenderBalTable(rows);if(TS.chart!=='table') tDrawBal(TS.chart);return;
+  }
+
+  if(!yrD&&TS.yr!=='annual'){
+    document.getElementById('te-title').textContent='لا توجد بيانات للسنة المختارة';
+    document.getElementById('te-thead').innerHTML='';
+    document.getElementById('te-tbody').innerHTML='<tr><td colspan="4" style="padding:24px;color:var(--t3);text-align:center">لا توجد بيانات — ارفع ملف CBOS لهذه السنة من خلال قسم الإدارة</td></tr>';return;
+  }
+
+  const comSrc=isExp?(yrD?.exp_com||[]):(yrD?.imp_com||[]);
+  const ctrSrc=isExp?(yrD?.exp_ctr||[]):(yrD?.imp_ctr||[]);
+
+  if(TS.view==='commodity'){
+    if(selC!=='all'&&yrD){
+      const com=comSrc.find(c=>c.n===selC);
+      if(com?.mon&&TS.per==='monthly'){title=`${isExp?'صادرات':'واردات'} ${selC} — ${TS.yr} شهري`;L=MN;D=com.mon;rows=MN.map((l,i)=>({type:'single',lb:l,v:com.mon[i]||0}));}
+      else if(com?.mon&&TS.per==='quarterly'){title=`${isExp?'صادرات':'واردات'} ${selC} — ${TS.yr} ربع سنوي`;L=QN;D=QN.map((_,qi)=>(com.mon||[]).slice(qi*3,(qi+1)*3).reduce((s,v)=>s+v,0));rows=L.map((l,i)=>({type:'single',lb:l,v:D[i]}));}
+      else{title=`${isExp?'صادرات':'واردات'} ${selC} — ${TS.yr}`;L=[TS.yr];D=[com?.v||0];rows=[{type:'single',lb:TS.yr,v:com?.v||0}];}
+    }else if(TS.yr==='annual'){title=`${isExp?'الصادرات':'الواردات'} السنوية 2015–2025`;L=DB.annual.map(r=>r.y);D=DB.annual.map(r=>isExp?r.e:r.i);rows=DB.annual.map(r=>({type:'single',lb:r.y,v:isExp?r.e:r.i}));}
+    else{title=`${isExp?'الصادرات':'الواردات'} حسب السلعة — ${TS.yr}`;L=comSrc.map(c=>c.n);D=comSrc.map(c=>c.v);rows=comSrc.map((c,i)=>({type:'commodity',rank:i+1,lb:c.n,v:c.v,p:c.p}));}
+  }else if(TS.view==='country'){
+    if(TS.yr==='annual'){title=`${isExp?'الصادرات':'الواردات'} السنوية 2015–2025`;L=DB.annual.map(r=>r.y);D=DB.annual.map(r=>isExp?r.e:r.i);rows=DB.annual.map(r=>({type:'single',lb:r.y,v:isExp?r.e:r.i}));}
+    else{const filtered=selCtr==='all'?ctrSrc.slice(0,15):ctrSrc.filter(c=>c.n===selCtr);const tot=comSrc.reduce((s,c)=>s+c.v,0);title=`${isExp?'أهم وجهات التصدير':'أهم مصادر الاستيراد'} — ${TS.yr}`;L=filtered.map(c=>c.n);D=filtered.map(c=>c.v);rows=filtered.map((c,i)=>({type:'country',rank:i+1,lb:c.n,v:c.v,r:c.r,pct:tot?(c.v/tot*100).toFixed(1):'—'}));}
+  }else{
+    if(TS.yr==='annual'){title=`${isExp?'الصادرات':'الواردات'} السنوية`;L=DB.annual.map(r=>r.y);D=DB.annual.map(r=>isExp?r.e:r.i);rows=DB.annual.map(r=>({type:'single',lb:r.y,v:isExp?r.e:r.i}));}
+    else{const src=TS.per==='monthly'?(isExp?yrD.monthly_e:yrD.monthly_i):(isExp?yrD.quarterly_e:yrD.quarterly_i);const lbs=TS.per==='monthly'?MN:QN;title=`${isExp?'الصادرات':'الواردات'} ${TS.per==='monthly'?'الشهرية':'الفصلية'} — ${TS.yr}`;L=lbs;D=src;rows=lbs.map((l,i)=>({type:'single',lb:l,v:src[i]||0}));}
+  }
+
+  document.getElementById('te-title').textContent=title;tLL=L;tLD=D;tLD2=[];
+  tRenderTable(rows,isExp);if(TS.chart!=='table') tDrawChart(TS.chart);
+}
+
+function tRenderTable(rows,isExp){
+  const head=document.getElementById('te-thead'),body=document.getElementById('te-tbody');
+  const bc=isExp?'#0a7c4e':'#b91c1c',max=Math.max(...rows.map(r=>r.v||0)),type=rows[0]?.type||'single';
+  if(type==='commodity'){
+    head.innerHTML=`<tr><th>#</th><th>السلعة</th><th>القيمة</th><th>الحصة %</th></tr>`;
+    body.innerHTML=rows.map(r=>`<tr><td class="rk">${r.rank}</td><td><strong>${r.lb}</strong></td><td class="n"><div class="bar-r"><span>${fmt(r.v)}</span><div class="bar-bg"><div class="bar-f" style="width:${max?(r.v/max*100).toFixed(0):0}%;background:${bc}"></div></div></div></td><td class="n">${r.p}%</td></tr>`).join('');
+  }else if(type==='country'){
+    head.innerHTML=`<tr><th>#</th><th>الدولة</th><th>القيمة</th><th>الحصة</th><th>المنطقة</th></tr>`;
+    body.innerHTML=rows.map(r=>`<tr><td class="rk">${r.rank}</td><td><strong>${r.lb}</strong></td><td class="n"><div class="bar-r"><span>${fmt(r.v)}</span><div class="bar-bg"><div class="bar-f" style="width:${max?(r.v/max*100).toFixed(0):0}%;background:${bc}"></div></div></div></td><td class="n">${r.pct}%</td><td><span class="rbdg ${RBDG[r.r]||''}">${r.r||''}</span></td></tr>`).join('');
+  }else{
+    head.innerHTML=`<tr><th>الفترة</th><th>القيمة</th><th>التوزيع</th></tr>`;
+    body.innerHTML=rows.map(r=>`<tr><td><strong>${r.lb}</strong></td><td class="n">${fmt(r.v)}</td><td><div class="bar-r"><div class="bar-bg"><div class="bar-f" style="width:${max?(r.v/max*100).toFixed(0):0}%;background:${bc}"></div></div><span style="font-size:10px;color:var(--t4)">${max?(r.v/max*100).toFixed(0):0}%</span></div></td></tr>`).join('');
+  }
+}
+function tRenderBalTable(rows){
+  document.getElementById('te-thead').innerHTML=`<tr><th>الفترة</th><th>الصادرات</th><th>الواردات</th><th>الميزان</th></tr>`;
+  document.getElementById('te-tbody').innerHTML=rows.map(r=>`<tr><td><strong>${r.lb}</strong></td><td class="n" style="color:var(--exp)">${fmt(r.e)}</td><td class="n" style="color:var(--imp)">${fmt(r.i)}</td><td class="n" style="color:${r.b>=0?'var(--exp)':'var(--imp)'}">${fmtBal(r.b)}</td></tr>`).join('');
+}
+function tDrawChart(type){
+  if(TCHART){TCHART.destroy();TCHART=null;}
+  const ctx=document.getElementById('te-chart').getContext('2d');
+  const isExp=TS.type==='exp',clr=isExp?'rgba(10,124,78,.7)':'rgba(185,28,28,.7)',ct=type==='pie'?'doughnut':type;
+  const ds=ct==='doughnut'?[{data:tLD,backgroundColor:CLRS.slice(0,tLD.length),borderColor:'#fff',borderWidth:2,hoverOffset:6}]:[{label:'القيمة',data:tLD,backgroundColor:ct==='bar'?tLL.map((_,i)=>CLRS[i%CLRS.length]):clr,borderColor:ct==='line'?clr.replace('.7)',',1)'):undefined,borderWidth:ct==='line'?2:0,tension:.35,fill:ct==='line'?{target:'origin',above:clr.replace('.7)','.08)')}:false,pointRadius:ct==='line'?3:0,borderRadius:ct==='bar'?4:0}];
+  const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:ct==='doughnut',position:'bottom',labels:{color:'#374151',font:{family:'IBM Plex Sans Arabic',size:10},padding:8,usePointStyle:true}},tooltip:{backgroundColor:'rgba(27,58,107,.95)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:9,callbacks:{label:ctx=>`${ctx.label||''}: ${fmt(ctx.raw)}`}}},scales:ct==='doughnut'?{}:{x:{ticks:{color:'#6b7280',font:{size:9},maxRotation:35},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}}}};
+  TCHART=new Chart(ctx,{type:ct,data:{labels:tLL,datasets:ds},options:opts});
+}
+function tDrawBal(type){
+  if(TCHART){TCHART.destroy();TCHART=null;}
+  const ctx=document.getElementById('te-chart').getContext('2d'),ct=type==='pie'?'bar':type;
+  TCHART=new Chart(ctx,{type:ct,data:{labels:tLL,datasets:[{label:'الصادرات',data:tLD,backgroundColor:'rgba(10,124,78,.65)',borderColor:'rgba(10,124,78,1)',borderWidth:ct==='line'?2:0,tension:.35,fill:false,borderRadius:4,pointRadius:3},{label:'الواردات',data:tLD2,backgroundColor:'rgba(185,28,28,.65)',borderColor:'rgba(185,28,28,1)',borderWidth:ct==='line'?2:0,tension:.35,fill:false,borderRadius:4,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{color:'#374151',font:{family:'IBM Plex Sans Arabic',size:10},usePointStyle:true,padding:12}},tooltip:{backgroundColor:'rgba(27,58,107,.95)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:9,callbacks:{label:ctx=>`${ctx.dataset.label}: ${fmt(ctx.raw)}`}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>fmt(v)},grid:{color:'rgba(0,0,0,.04)'}}}},});
+}
+
+function teQuick(v){
+  const sT=document.getElementById('seg-t'),sV=document.getElementById('seg-v');
+  const setBtn=(seg,idx,cls)=>{seg.querySelectorAll('button').forEach((b,i)=>{b.className=i===idx?cls:'';});};
+  if(v==='top-exp'){TS.type='exp';TS.view='commodity';setBtn(sT,0,'on-e');setBtn(sV,0,'on');document.getElementById('s-yr').value='2025';document.getElementById('s-com').value='all';}
+  else if(v==='top-imp'){TS.type='imp';TS.view='commodity';setBtn(sT,1,'on-i');setBtn(sV,0,'on');document.getElementById('s-yr').value='2025';document.getElementById('s-com').value='all';}
+  else if(v==='exp-ctr'){TS.type='exp';TS.view='country';setBtn(sT,0,'on-e');setBtn(sV,1,'on');document.getElementById('s-yr').value='2025';document.getElementById('s-ctr').value='all';}
+  else if(v==='imp-ctr'){TS.type='imp';TS.view='country';setBtn(sT,1,'on-i');setBtn(sV,1,'on');document.getElementById('s-yr').value='2025';document.getElementById('s-ctr').value='all';}
+  else if(v==='balance'){TS.type='bal';TS.view='time';setBtn(sT,2,'on-b');setBtn(sV,2,'on');document.getElementById('s-yr').value='annual';}
+  else if(v==='compare'){
+    const y25=DB.years['2025'].exp_com,y24=DB.years['2024'].exp_com;
+    document.getElementById('te-title').textContent='مقارنة الصادرات 2024 vs 2025';
+    document.getElementById('te-thead').innerHTML=`<tr><th>السلعة</th><th>2024</th><th>2025</th><th>التغيير</th></tr>`;
+    const allC=[...new Set([...y25.map(c=>c.n),...y24.map(c=>c.n)])];
+    document.getElementById('te-tbody').innerHTML=allC.map(n=>{const v25=y25.find(c=>c.n===n)?.v||0,v24=y24.find(c=>c.n===n)?.v||0,chg=v24>0?((v25-v24)/v24*100).toFixed(0):'—';return`<tr><td><strong>${n}</strong></td><td class="n">${fmt(v24)}</td><td class="n">${fmt(v25)}</td><td class="n" style="color:${v25>=v24?'var(--exp)':'var(--imp)'}">${v25>=v24?'↑':'↓'}${Math.abs(chg)}%</td></tr>`;}).join('');return;
+  }
+  teRun();
+}
+
+// PDF/CSV loading
+let extRawText='';
+function teLoadFile(e){const f=e.target.files[0];if(!f)return;if(f.name.endsWith('.pdf'))parsePDF(f);else parseCSV(f);}
+function teDzDrop(e){e.preventDefault();document.getElementById('te-dz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f) teLoadFile({target:{files:[f]}});}
+function dzOver(e,id){e.preventDefault();document.getElementById(id)?.classList.add('drag');}
+function dzLeave(id){document.getElementById(id)?.classList.remove('drag');}
+
+function parsePDF(file){
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const pdf=await pdfjsLib.getDocument({data:e.target.result}).promise;
+      let text='';
+      for(let i=1;i<=Math.min(pdf.numPages,10);i++){const page=await pdf.getPage(i);const tc=await page.getTextContent();text+=tc.items.map(s=>s.str).join(' ')+'\n';}
+      extRawText=text;
+      const yr=text.match(/20(1[5-9]|2[0-9])/)?.[0]||new Date().getFullYear().toString();
+      document.getElementById('ex-year').value=yr;
+      document.getElementById('ext-raw-preview').textContent=text.slice(0,600)+'...';
+      const nums=(text.match(/(\d{1,3},?\d{3},?\d{3})/g)||[]).map(n=>parseInt(n.replace(/,/g,''))).filter(n=>n>100000&&n<20000000).sort((a,b)=>b-a);
+      if(nums[0]) document.getElementById('ex-imp').value=nums[0];
+      if(nums[1]) document.getElementById('ex-exp').value=nums[1];
+      if(text.includes('ذهب')||text.includes('Gold')){document.getElementById('ex-c1').value='الذهب';const gn=nums.filter(n=>n>500000&&n<2000000);if(gn[0]) document.getElementById('ex-v1').value=gn[0];}
+      openModal('ext-modal');
+    }catch(err){alert('خطأ في قراءة PDF: '+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+function parseCSV(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+    const rows=lines.slice(1).map(l=>l.split(',').map(v=>v.replace(/"/g,'').trim()));
+    let changed=false;
+    rows.forEach(r=>{
+      const yr=r[headers.indexOf('year')]||'';
+      if(!yr) return;
+      if(!DB.years[yr]) DB.years[yr]={monthly_e:[],monthly_i:[],quarterly_e:[],quarterly_i:[],exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[]};
+      const type=r[headers.indexOf('type')]||'exp';
+      const cn=r[headers.indexOf('commodity_name')];const cv=parseInt(r[headers.indexOf('commodity_value_kusd')])||0;
+      if(cn&&cv){const arr=type==='exp'?DB.years[yr].exp_com:DB.years[yr].imp_com;const ex=arr.find(c=>c.n===cn);if(ex)ex.v=cv;else arr.push({n:cn,v:cv,p:0});changed=true;}
+    });
+    if(changed){DB.sources.push({year:'CSV',file:file.name,added:new Date().toISOString().slice(0,10)});saveDB();teInit();teRun();addFileTag('te-loaded-files',file.name,'✅ '+rows.length+' سجل');}
+    alert('✅ تم تحميل '+rows.length+' سجل من '+file.name);
+  };
+  reader.readAsText(file,'UTF-8');
+}
+function extConfirm(){
+  const yr=document.getElementById('ex-year').value;
+  const expV=parseInt(document.getElementById('ex-exp').value)||0;
+  const impV=parseInt(document.getElementById('ex-imp').value)||0;
+  if(!yr||!expV||!impV){alert('يرجى ملء السنة والإجماليات');return;}
+  if(!DB.years[yr]) DB.years[yr]={monthly_e:[],monthly_i:[],quarterly_e:[],quarterly_i:[],exp_com:[],imp_com:[],exp_ctr:[],imp_ctr:[]};
+  const c1=document.getElementById('ex-c1').value,v1=parseInt(document.getElementById('ex-v1').value)||0;
+  const c2=document.getElementById('ex-c2').value,v2=parseInt(document.getElementById('ex-v2').value)||0;
+  if(c1&&v1) teUpsert(yr,'exp',c1,v1,expV);
+  if(c2&&v2) teUpsert(yr,'exp',c2,v2,expV);
+  const ex=DB.annual.find(r=>r.y===yr);if(ex){ex.e=expV;ex.i=impV;}else DB.annual.push({y:yr,e:expV,i:impV});
+  DB.annual.sort((a,b)=>a.y.localeCompare(b.y));
+  DB.sources.push({year:yr,file:'PDF import',added:new Date().toISOString().slice(0,10)});
+  saveDB();teInit();teUpdateDB();teRun();
+  addFileTag('te-loaded-files',`بيانات ${yr}`,`✅ ${fmt(expV)}`);
+  closeModal('ext-modal');alert(`✅ تمت إضافة بيانات ${yr} للقاعدة التراكمية`);
+}
+function teUpsert(yr,t,n,v,tot){const arr=t==='exp'?DB.years[yr].exp_com:DB.years[yr].imp_com;const ex=arr.find(c=>c.n===n);if(ex){ex.v=v;ex.p=tot?+(v/tot*100).toFixed(1):ex.p;}else arr.push({n,v,p:tot?+(v/tot*100).toFixed(1):0});}
+function teDL(){const isExp=TS.type==='exp';let rows=[],fn='trade';
+  if(TS.type==='bal'){rows=[['الفترة','الصادرات (ألف $)','الواردات (ألف $)','الميزان (ألف $)']];DB.annual.forEach(r=>rows.push([r.y,r.e,r.i,r.e-r.i]));fn='balance';}
+  else if(TS.view==='commodity'){rows=[['السلعة','القيمة (ألف $)','النسبة %']];(isExp?DB.years[TS.yr]?.exp_com||[]:DB.years[TS.yr]?.imp_com||[]).forEach(r=>rows.push([r.n,r.v,r.p]));fn=(isExp?'exports':'imports')+'_commodity_'+TS.yr;}
+  else if(TS.view==='country'){rows=[['الدولة','القيمة (ألف $)','المنطقة']];(isExp?DB.years[TS.yr]?.exp_ctr||[]:DB.years[TS.yr]?.imp_ctr||[]).forEach(r=>rows.push([r.n,r.v,r.r]));fn=(isExp?'exports':'imports')+'_country_'+TS.yr;}
+  else{rows=[['الفترة','القيمة (ألف $)']];MN.forEach((m,i)=>rows.push([m,(isExp?DB.years[TS.yr]?.monthly_e||[]:DB.years[TS.yr]?.monthly_i||[])[i]||0]));fn=(isExp?'exports':'imports')+'_monthly_'+TS.yr;}
+  dlCSV(rows,fn);
+}
+function teDLTemplate(){dlCSV([['year','type','commodity_name','commodity_value_kusd','country_name','country_value_kusd','region'],[2026,'exp','الذهب',0,'الإمارات',0,'عربي']],'cbos_template');}
+function teDLAll(){const rows=[['النوع','البند','السنة','القيمة (ألف $)']];DB.annual.forEach(r=>{rows.push(['صادرات','إجمالي',r.y,r.e]);rows.push(['واردات','إجمالي',r.y,r.i]);});Object.keys(DB.years).forEach(yr=>{(DB.years[yr].exp_com||[]).forEach(c=>rows.push(['صادرات',c.n,yr,c.v]));(DB.years[yr].imp_com||[]).forEach(c=>rows.push(['واردات',c.n,yr,c.v]));});dlCSV(rows,'sudan_trade_full_cbos');}
+
+// ══ MARKET PRICES ══
+const MP_ITEMS=[
+  {n:'دقيق القمح',u:'كجم',p:1200,ch:'+8%',trend:'up',mon:[600,700,800,900,1000,1050,1100,1100,1100,1150,1200,1200]},
+  {n:'السكر',u:'كجم',p:900,ch:'+5%',trend:'up',mon:[500,550,600,650,700,750,800,800,850,850,900,900]},
+  {n:'الزيت النباتي',u:'لتر',p:2500,ch:'+12%',trend:'up',mon:[1200,1300,1500,1700,1900,2000,2100,2200,2300,2400,2500,2500]},
+  {n:'الأرز',u:'كجم',p:1100,ch:'+3%',trend:'up',mon:[700,750,800,850,900,950,1000,1000,1050,1050,1100,1100]},
+  {n:'العدس',u:'كجم',p:800,ch:'-2%',trend:'down',mon:[600,620,650,680,700,720,750,760,780,790,800,800]},
+  {n:'الجازولين',u:'لتر',p:2200,ch:'ثابت',trend:'flat',mon:[1800,1900,1900,2000,2000,2100,2100,2100,2200,2200,2200,2200]},
+];
+let MP_CHART=null,mpSel=MP_ITEMS[0];
+function mpInit(){
+  // Populate item select
+  const itemSel=document.getElementById('mp-item');
+  if(itemSel){const cur=itemSel.value;itemSel.innerHTML=MP_ITEMS.map(i=>`<option value="${i.n}">${i.n}</option>`).join('');if(cur) itemSel.value=cur;}
+  // Populate state select with all 18 states
+  const stateSel=document.getElementById('mp-state');
+  if(stateSel&&stateSel.options.length<5){
+    const states=['الخرطوم','كسلا','البحر الأحمر','القضارف','سنار','الجزيرة','النيل الأزرق','النيل الأبيض','شمال كردفان','جنوب كردفان','شمال دارفور','جنوب دارفور','وسط دارفور','غرب دارفور','شرق دارفور','نهر النيل','الولاية الشمالية','غرب كردفان'];
+    states.forEach(s=>{if(!stateSel.querySelector(`option[value="${s}"]`)){const o=document.createElement('option');o.value=s;o.textContent=s;stateSel.appendChild(o);}});
+  }
+  // Filter by selected item if specific
+  const selItem=document.getElementById('mp-item')?.value;
+  const filteredItems=selItem&&selItem!=='all'?MP_ITEMS.filter(i=>i.n===selItem):MP_ITEMS;
+  document.getElementById('mp-grid').innerHTML=filteredItems.map(item=>`<div class="price-card" onclick="mpSelectItem('${item.n}')"><div class="pc-item">${item.n}</div><div class="pc-price">${item.p.toLocaleString()}</div><div class="pc-unit">SDG / ${item.u} — تقدير</div><div class="pc-change ${item.trend==='up'?'tr-r':item.trend==='down'?'tr-g':'tr-y'}">${item.ch}</div></div>`).join('');
+  if(!mpSel) mpSel=MP_ITEMS[0];
+  mpRenderChart(mpSel);
+}
+function mpSelectItem(name){mpSel=MP_ITEMS.find(i=>i.n===name)||MP_ITEMS[0];document.getElementById('mp-chart-title').textContent=`تطور السعر — ${name} 2025`;mpRenderChart(mpSel);}
+function mpSelectByFilter(){const name=document.getElementById('mp-item').value;mpSelectItem(name);}
+function mpRun(){mpInit();}
+function mpRenderChart(item){
+  if(MP_CHART){MP_CHART.destroy();MP_CHART=null;}
+  const ctx=document.getElementById('mp-chart').getContext('2d');
+  const isBar=document.getElementById('mp-vt-bar')?.classList.contains('on');
+  MP_CHART=new Chart(ctx,{type:isBar?'bar':'line',data:{labels:MN,datasets:[{label:`${item.n} (SDG/${item.u})`,data:item.mon,backgroundColor:isBar?'rgba(27,58,107,.65)':'rgba(27,58,107,.1)',borderColor:'rgba(27,58,107,1)',borderWidth:isBar?0:2,tension:.4,fill:!isBar,pointRadius:3,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(27,58,107,.95)',titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:9}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>v.toLocaleString()+' SDG'},grid:{color:'rgba(0,0,0,.04)'}}}},});
+}
+function mpSetChart(t,btn){document.querySelectorAll('[id^=mp-vt-]').forEach(b=>b.className='vt');btn.className='vt on';mpRenderChart(mpSel);}
+function mpDL(){dlCSV([['السلعة',...MN],...MP_ITEMS.map(i=>[i.n,...i.mon])],'market_prices_sudan');}
+function mpDLTemplate(){dlCSV([['date','state','commodity','price_sdg','unit'],['2025-01-01','بورتسودان','دقيق القمح',1200,'كجم']],'market_prices_template');}
+function mpLoadFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const lines=ev.target.result.split('\n').filter(l=>l.trim());
+    const headers=lines[0].split(',').map(h=>h.replace(/"/g,'').trim());
+    const rows=lines.slice(1).map(l=>l.split(',').map(v=>v.replace(/"/g,'').trim()));
+    let added=0;
+    rows.forEach(r=>{
+      const item=r[headers.indexOf('commodity')]||r[0]||'';
+      const price=parseFloat(r[headers.indexOf('price_sdg')]||r[1]||0);
+      const city=r[headers.indexOf('state')]||r[2]||'';
+      if(item&&price){
+        const existing=MP_ITEMS.find(i=>i.n===item);
+        if(existing){existing.p=price;added++;}
+        else{MP_ITEMS.push({n:item,u:'كجم',p:price,ch:'جديد',trend:'flat',mon:Array(12).fill(price)});added++;}
+      }
+    });
+    mpSavePrices();mpInit();
+    addFileTag('mp-files-list',f.name,'✅ '+added+' سجل');
+    alert('✅ تم إضافة '+added+' سجل من '+f.name);
+  };
+  reader.readAsText(f,'UTF-8');
+}
+const MP_KEY='seo_mp_v1';
+function mpSavePrices(){localStorage.setItem(MP_KEY,JSON.stringify(MP_ITEMS));}
+function mpLoadPrices(){const s=JSON.parse(localStorage.getItem(MP_KEY)||'null');if(s&&s.length) MP_ITEMS.length=0,MP_ITEMS.push(...s);}
+function mpAddItem(){
+  const name=document.getElementById('new-item-name').value.trim();
+  const unit=document.getElementById('new-item-unit').value.trim()||'كجم';
+  const price=parseFloat(document.getElementById('new-item-price').value)||0;
+  if(!name){alert('أدخل اسم السلعة');return;}
+  if(MP_ITEMS.find(i=>i.n===name)){alert('السلعة موجودة بالفعل');return;}
+  MP_ITEMS.push({n:name,u:unit,p:price||0,ch:'جديد',trend:'flat',mon:Array(12).fill(price||0)});
+  mpSavePrices();mpInit();
+  document.getElementById('new-item-name').value='';document.getElementById('new-item-price').value='';
+  const sel=document.getElementById('mp-item');sel.innerHTML=MP_ITEMS.map(i=>`<option value="${i.n}">${i.n}</option>`).join('');
+  addTag('mp-added-list','✅ سلعة: '+name);
+}
+function mpAddCity(){
+  const city=document.getElementById('new-city-name').value.trim();
+  const state=document.getElementById('new-city-state').value;
+  if(!city||!state){alert('أدخل اسم المدينة والولاية');return;}
+  const sel=document.getElementById('mp-state');
+  if(!sel.querySelector(`option[value="${city}"]`)){const opt=document.createElement('option');opt.value=city;opt.textContent=city+' ('+state+')';sel.appendChild(opt);}
+  addTag('mp-added-list','✅ مدينة: '+city+' — '+state);
+  document.getElementById('new-city-name').value='';
+}
+function mpAddMarket(){
+  const market=document.getElementById('new-market-name').value.trim();
+  const city=document.getElementById('new-market-city').value.trim();
+  if(!market){alert('أدخل اسم السوق');return;}
+  addTag('mp-added-list','✅ سوق: '+market+(city?' — '+city:''));
+  document.getElementById('new-market-name').value='';document.getElementById('new-market-city').value='';
+}
+function addTag(cid,text){const el=document.getElementById(cid);if(el) el.innerHTML=`<div class="lf-item"><span>${text}</span></div>`+el.innerHTML;}
+function mpDLAllData(){const rows=[['السلعة','الوحدة','آخر سعر SDG','التغيير',...MN.map(m=>m+' 2025')],...MP_ITEMS.map(i=>[i.n,i.u,i.p,i.ch,...i.mon])];dlCSV(rows,'market_prices_all_sudan');}
+
+// ══ MACRO ══
+let ICHART=null,GCHART=null;
+function macroInit(){
+  if(ICHART) ICHART.destroy();
+  const ic=document.getElementById('inf-chart')?.getContext('2d');
+  if(ic) ICHART=new Chart(ic,{type:'line',data:{labels:['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],datasets:[{label:'التضخم %',data:[16,17,33,63,51,163,359,138,256,83],backgroundColor:'rgba(185,28,28,.1)',borderColor:'rgba(185,28,28,.8)',borderWidth:2,tension:.4,fill:true,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw}%`}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}}}},});
+  if(GCHART) GCHART.destroy();
+  const gc=document.getElementById('gdp-chart')?.getContext('2d');
+  if(gc) GCHART=new Chart(gc,{type:'bar',data:{labels:['2015','2016','2017','2018','2019','2020','2021'],datasets:[{label:'GDP $B',data:[97,95,117,90,72,67,34],backgroundColor:CLRS.slice(0,7),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`$${ctx.raw}B`}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#6b7280',font:{size:9},callback:v=>'$'+v+'B'},grid:{color:'rgba(0,0,0,.04)'}}}},});
+}
+
+// ══ GAPS ══
+const GAP_DATA=[
+  {n:'GDP الرسمي',c:['🟢','🟢','🟡','🟡','⭕','⭕','⭕'],s:'حرج'},{n:'التضخم الشهري',c:['🟢','🟢','🟡','🟡','🔴','🔴','🔴'],s:'حرج'},
+  {n:'سعر الصرف الموازي',c:['🟡','🟡','🟡','🟡','🟡','🔴','🔴'],s:'مزمن'},{n:'الاحتياطيات',c:['🟢','🟢','🟡','🟡','🔴','🔴','🔴'],s:'حرج'},
+  {n:'الصادرات/الواردات',c:['🟢','🟢','🟢','🟡','🟡','🟡','🟡'],s:'متأخر'},{n:'عرض النقود M2',c:['🟢','🟡','🔴','🔴','🔴','🔴','🔴'],s:'مفقود'},
+  {n:'معدل البطالة',c:['⭕','⭕','⭕','🟡','🔴','🔴','🔴'],s:'مزمن'},{n:'التعداد السكاني',c:['🔴','🔴','🔴','🔴','🔴','🔴','🔴'],s:'مزمن'},
+  {n:'الفقر والدخل',c:['🟡','🟡','🔴','🟡','🔴','🔴','🔴'],s:'متقطع'},{n:'تحويلات المغتربين',c:['🔴','🔴','🔴','🔴','🔴','🔴','🔴'],s:'مزمن'},
+  {n:'إحصاء الزراعة',c:['🟡','🟡','🔴','🔴','🔴','🔴','🔴'],s:'متأخر'},{n:'أسعار السوق',c:['⭕','⭕','⭕','⭕','🔴','🔴','🔴'],s:'مزمن'},
+];
+const GAP_DET=[
+  {t:'التعداد السكاني',ic:'👥',type:'crit',b:'آخر تعداد رسمي 2008 — 17 عاماً. كل المؤشرات المبنية على عدد السكان تعتمد على تقديرات قد تختلف بعشرات الملايين.',impact:'خطط التنمية وتوزيع الموازنات تُبنى على أرقام مشكوك فيها.'},
+  {t:'سوق العمل والبطالة',ic:'💼',type:'crit',b:'لا يوجد مسح منتظم لسوق العمل. الاقتصاد غير الرسمي 60-70% ولا يُقاس.',impact:'استحالة صياغة سياسة توظيف فعّالة.'},
+  {t:'تحويلات المغتربين',ic:'💸',type:'warn',b:'تُقدَّر بمليارات سنوياً لكن لا بيانات رسمية. معظمها عبر الحوالة غير الرسمية.',impact:'لا يمكن قياس أثر المغتربين على ميزان المدفوعات.'},
+  {t:'إحصاءات ما بعد 2023',ic:'⚔️',type:'crit',b:'بعد أبريل 2023 توقفت معظم الجهات عن جمع البيانات الميدانية. كل البيانات تقديرات دولية.',impact:'تخطيط الإغاثة وإعادة الإعمار يسير في ظلام بيانياً.'},
+];
+const GCM={'🟢':'gc-g','🟡':'gc-w','🔴':'gc-r','⭕':'gc-n'};
+const SBDG={حرج:'badge-r',مزمن:'badge-r',متقطع:'badge-w',متأخر:'badge-w',مفقود:'badge-r'};
+function gapsRender(){
+  document.getElementById('gap-tbody').innerHTML=GAP_DATA.map(r=>`<tr><td>${r.n}</td>${r.c.map(c=>`<td><div class="gc ${GCM[c]||'gc-n'}">${c}</div></td>`).join('')}<td><span class="badge ${SBDG[r.s]||'badge-b'}">${r.s}</span></td></tr>`).join('');
+  document.getElementById('gap-cards').innerHTML=GAP_DET.map(g=>`<div class="gap-card ${g.type}"><div class="gc-title">${g.ic} ${g.t}</div><div class="gc-body">${g.b}</div><div class="gc-impact">⚡ ${g.impact}</div></div>`).join('');
+}
+
+// ══ FORUM ══
+const F_KEY='seo_forum_v2';
+const FTOPICS=[{id:'macro',n:'الاقتصاد الكلي',c:'#1b3a6b'},{id:'monetary',n:'السياسة النقدية',c:'#2952a3'},{id:'trade',n:'التجارة',c:'#0a7c4e'},{id:'food',n:'الأمن الغذائي',c:'#b5640a'},{id:'gaps',n:'فجوات البيانات',c:'#b91c1c'},{id:'policy',n:'السياسات',c:'#6b21a8'},{id:'other',n:'أخرى',c:'#374151'}];
+const TL={macro:'الاقتصاد الكلي',monetary:'السياسة النقدية',trade:'التجارة',food:'الأمن الغذائي',gaps:'فجوات البيانات',policy:'السياسات',other:'أخرى'};
+let POSTS=JSON.parse(localStorage.getItem(F_KEY)||'[]');
+if(!POSTS.length) POSTS=[{id:1,title:'لماذا غياب التعداد السكاني يُعيق السياسات؟',body:'آخر تعداد 2008 — 17 عاماً. كيف تُخطط وزارة دون معرفة عدد السكان الحقيقي؟',author:'اقتصادي سوداني',topic:'gaps',time:'منذ يومين',likes:14},{id:2,title:'الذهب السوداني: من يستفيد فعلاً؟',body:'100-150 طناً سنوياً، معظمها يغادر عبر قنوات غير رسمية دون أن تستفيد منه الخزينة.',author:'محلل اقتصادي',topic:'trade',time:'منذ 3 أيام',likes:28},{id:3,title:'العجز التجاري تضاعف في 2025',body:'من 1.78 مليار في 2024 إلى 3.86 مليار في 2025. ضغط متصاعد على العملة والاحتياطيات.',author:'د. ناشط اقتصادي',topic:'macro',time:'منذ أسبوع',likes:41}];
+function fSave(){localStorage.setItem(F_KEY,JSON.stringify(POSTS));}
+function fRender(){
+  const tc={};POSTS.forEach(p=>{tc[p.topic]=(tc[p.topic]||0)+1;});
+  document.getElementById('forum-topics').innerHTML=FTOPICS.map(t=>`<div class="topic-row"><div class="td" style="background:${t.c}"></div><div class="tr-name">${t.n}</div><div class="tr-cnt">${tc[t.id]||0}</div></div>`).join('');
+  document.getElementById('f-count').textContent=POSTS.length;
+  document.getElementById('f-authors').textContent=[...new Set(POSTS.map(p=>p.author))].length;
+  const top=Object.entries(tc).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('f-top-topic').textContent=top?TL[top[0]]:'—';
+  document.getElementById('forum-posts').innerHTML=POSTS.slice().reverse().map(p=>`<div class="post-card"><div class="post-meta"><div class="avatar">${p.author[0]}</div><div><div class="post-author">${p.author}</div><div class="post-time">${p.time||'الآن'}</div></div><div class="post-tag">${TL[p.topic]||p.topic}</div></div><div class="post-title">${p.title}</div><div class="post-body">${p.body.length>200?p.body.slice(0,200)+'...':p.body}</div><div class="post-acts"><div class="pact" onclick="fLike(${p.id},this)">❤ ${p.likes||0}</div><div class="pact">💬 مشاركة</div></div></div>`).join('');
+}
+function fPost(){const t=document.getElementById('f-title').value.trim(),b=document.getElementById('f-body').value.trim(),topic=document.getElementById('f-topic').value,author=document.getElementById('f-author').value.trim()||'مجهول';if(!t||!b){alert('يرجى كتابة العنوان والمحتوى');return;}POSTS.push({id:Date.now(),title:t,body:b,topic,author,time:'الآن — '+new Date().toLocaleDateString('ar-SA'),likes:0});fSave();document.getElementById('f-title').value='';document.getElementById('f-body').value='';fRender();}
+function fLike(id,el){const p=POSTS.find(p=>p.id===id);if(p){p.likes=(p.likes||0)+1;fSave();el.textContent='❤ '+p.likes;}}
+
+// ══ LIBRARY ══
+const LIBRARY=[
+  {type:'تقرير دولي',title:'آفاق الاقتصاد الإقليمي',desc:'تقرير IMF يتضمن توقعات السودان وتحليل المخاطر.',year:'2024',src:'IMF',tag:'badge-b'},
+  {type:'بيانات',title:'مؤشرات التنمية العالمية',desc:'قاعدة البنك الدولي — 1400+ مؤشر للسودان منذ 1960.',year:'2024',src:'World Bank',tag:'badge-b'},
+  {type:'دراسة',title:'فجوات الشمول المالي',desc:'تقرير يستعرض واقع الشمول المالي وأسباب تأخر السودان.',year:'2023',src:'AFI/CBOS',tag:'badge-w'},
+  {type:'تقرير',title:'تداعيات النزاع على الاقتصاد',desc:'تقدير للخسائر الاقتصادية جراء النزاع 2023.',year:'2023',src:'UNDP',tag:'badge-r'},
+  {type:'بيانات',title:'مؤشرات الحوكمة العالمية',desc:'قياس الحوكمة والشفافية والمساءلة عبر 6 أبعاد.',year:'2023',src:'World Bank',tag:'badge-b'},
+  {type:'تقرير',title:'إعادة هيكلة الديون — HIPC',desc:'مسار إعفاء الديون وأثر التطورات السياسية.',year:'2023',src:'IMF/World Bank',tag:'badge-g'},
+  {type:'بيانات',title:'إحصاءات التجارة الدولية',desc:'بيانات الصادرات والواردات مع تحليل الشركاء التجاريين.',year:'2024',src:'UN Comtrade',tag:'badge-b'},
+  {type:'تقرير',title:'الأمن الغذائي — تقرير IPC',desc:'تصنيف حدة انعدام الأمن الغذائي في الولايات.',year:'2024',src:'WFP/FAO/FEWS NET',tag:'badge-r'},
+  {type:'دراسة',title:'الاقتصاد غير الرسمي',desc:'تُقدّر حجم الاقتصاد غير الرسمي وأثره على الإيرادات.',year:'2022',src:'University of Khartoum',tag:'badge-w'},
+];
+function libSearch(){const q=document.getElementById('lib-q').value.toLowerCase();const d=q?LIBRARY.filter(l=>l.title.includes(q)||l.desc.includes(q)||l.src.toLowerCase().includes(q)):LIBRARY;document.getElementById('lib-grid').innerHTML=d.map(l=>`<div class="lib-card"><div class="lib-type">${l.type}</div><div class="lib-title">${l.title}</div><div class="lib-desc">${l.desc}</div><div class="lib-meta"><span>${l.year} · ${l.src}</span><span class="badge ${l.tag}">${l.type}</span></div></div>`).join('');}
+function libRender(){libSearch();}
+
+// ══ HELPERS ══
+function dlCSV(rows,fn){const csv='\uFEFF'+rows.map(r=>r.map(x=>`"${x}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=fn+'_seo.csv';a.click();}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function addFileTag(cid,name,status){const el=document.getElementById(cid);if(el) el.innerHTML+=`<div class="lf-item"><span>📄 ${name}</span><span style="color:var(--exp);font-weight:700">${status}</span></div>`;}
+
+// ══ INIT ══
+mpLoadPrices();
+teInit();teRun();gapsRender();libRender();fRender();mpInit();
+</script>
+</body>
+</html>
