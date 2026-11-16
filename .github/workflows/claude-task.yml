@@ -1,0 +1,43 @@
+# workops runs Claude coding tasks here, on the owner's Claude subscription (CLAUDE_CODE_OAUTH_TOKEN).
+# workops starts it (workflow_dispatch) for the owner's own tasks and for each Codex fix round, then opens the PR,
+# runs the Codex review loop and merges. Copy this file to any repo where Claude should work this way.
+# Setup: add the CLAUDE_CODE_OAUTH_TOKEN secret to this repo (Settings > Secrets and variables > Actions).
+name: Claude task (workops)
+run-name: workops ${{ inputs.run_ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_ref:
+        description: workops run reference (do not edit)
+        required: true
+      prompt:
+        description: The task, or Codex's findings to fix
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: workops-${{ inputs.run_ref }}
+  cancel-in-progress: false
+
+jobs:
+  work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ inputs.prompt }}
+          claude_args: >-
+            --max-turns 150
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash"
